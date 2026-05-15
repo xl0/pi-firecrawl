@@ -2,7 +2,8 @@
 	"name": "@xl0/firecrawl-web-search",
 	"version": "0.1.0",
 	"keywords": [
-		"pi-package", "firecrawl"
+		"pi-package",
+		"firecrawl"
 	],
 	"type": "module",
 	"license": "MIT",
