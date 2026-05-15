@@ -1,0 +1,48 @@
+{
+	"name": "@xl0/firecrawl-web-search",
+	"version": "0.1.0",
+	"keywords": [
+		"pi-package", "firecrawl"
+	],
+	"type": "module",
+	"license": "MIT",
+	"homepage": "https://github.com/xl0/pi-firecrawl#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/xl0/pi-firecrawl.git"
+	},
+	"files": [
+		"extensions/",
+		"README.md",
+		"LICENSE"
+	],
+	"scripts": {
+		"typecheck": "tsgo --noEmit",
+		"check": "bun run typecheck && bun run biome:check",
+		"release": "bun publish --access public",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"format:check": "biome format .",
+		"biome:check": "biome check ."
+	},
+	"dependencies": {
+		"@mendable/firecrawl-js": "^1.29.3",
+		"dotenv": "^16.5.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.14",
+		"@typescript/native-preview": "^7.0.0-dev.20260502.1",
+		"bun-types": "^1.3.13",
+		"typescript": "^6.0.3"
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-ai": "*",
+		"@earendil-works/pi-coding-agent": "*",
+		"typebox": "*"
+	},
+	"pi": {
+		"extensions": [
+			"./extensions"
+		]
+	}
+}
