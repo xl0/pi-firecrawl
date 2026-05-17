@@ -2,6 +2,7 @@ import { homedir } from "node:os"
 import { join } from "node:path"
 import { StringEnum } from "@earendil-works/pi-ai"
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent"
+import { Text } from "@earendil-works/pi-tui"
 import type { ScrapeParams } from "@mendable/firecrawl-js"
 import Firecrawl from "@mendable/firecrawl-js"
 import { config as loadDotenv } from "dotenv"
@@ -38,6 +39,12 @@ function stringify(value: unknown) {
 	return JSON.stringify(value, null, 2)
 }
 
+function withoutStatus(value: unknown) {
+	if (!value || typeof value !== "object" || !("success" in value)) return value
+	const { success: _success, ...rest } = value
+	return rest
+}
+
 function asErrorMessage(error: unknown) {
 	return error instanceof Error ? error.message : String(error)
 }
@@ -59,6 +66,15 @@ export default function (pi: ExtensionAPI) {
 			source: Type.Optional(StringEnum(["web", "news", "images"] as const)),
 			scrapeResults: Type.Optional(Type.Boolean({ description: "Whether to scrape result pages and include markdown. Defaults to false." }))
 		}),
+		renderCall(args, theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
+			const bits = [args.source ?? "web", `limit ${args.limit ?? 5}`]
+			if (args.scrapeResults) bits.push("scrape")
+			text.setText(
+				`${theme.fg("toolTitle", theme.bold("search "))}${theme.fg("muted", `"${args.query}"`)} ${theme.fg("dim", `(${bits.join(", ")})`)}`
+			)
+			return text
+		},
 		async execute(_toolCallId, params, signal, onUpdate) {
 			try {
 				onUpdate?.({
@@ -76,9 +92,10 @@ export default function (pi: ExtensionAPI) {
 
 				if (signal?.aborted) throw new Error("Search cancelled")
 
+				const output = withoutStatus(result)
 				return {
-					content: [{ type: "text", text: stringify(result) }],
-					details: result
+					content: [{ type: "text", text: stringify(output) }],
+					details: output
 				}
 			} catch (error) {
 				return {
@@ -112,6 +129,11 @@ export default function (pi: ExtensionAPI) {
 				})
 			)
 		}),
+		renderCall(args, theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
+			text.setText(`${theme.fg("toolTitle", theme.bold("scrape "))}${theme.fg("muted", args.url)}`)
+			return text
+		},
 		async execute(_toolCallId, params, signal, onUpdate) {
 			try {
 				onUpdate?.({
