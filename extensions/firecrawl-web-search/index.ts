@@ -45,6 +45,32 @@ function withoutStatus(value: unknown) {
 	return rest
 }
 
+function formatSearchOutput(value: unknown) {
+	const output = withoutStatus(value)
+	const data = output && typeof output === "object" && "data" in output ? (output as { data?: unknown }).data : undefined
+	if (!Array.isArray(data)) return stringify(output)
+	if (data.length === 0) return "No results."
+
+	return data
+		.map((item, index) => {
+			if (!item || typeof item !== "object") return `${index + 1}. ${stringify(item)}`
+
+			const result = item as { title?: unknown; url?: unknown; description?: unknown; markdown?: unknown }
+			const title = typeof result.title === "string" ? result.title : "Untitled"
+			const url = typeof result.url === "string" ? result.url : undefined
+			const description = typeof result.description === "string" ? result.description : undefined
+			const markdown = typeof result.markdown === "string" ? result.markdown.trim() : undefined
+			const lines = [`${index + 1}. ${title}`]
+
+			if (url) lines.push(`   ${url}`)
+			if (description && !(index === 0 && markdown)) lines.push(`   ${description}`)
+			if (index === 0 && markdown) lines.push("", "   Markdown:", markdown)
+
+			return lines.join("\n")
+		})
+		.join("\n\n")
+}
+
 function asErrorMessage(error: unknown) {
 	return error instanceof Error ? error.message : String(error)
 }
@@ -52,24 +78,23 @@ function asErrorMessage(error: unknown) {
 export default function (pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "search",
-		label: "Search Web",
-		description:
-			"Search the web with Firecrawl. Returns web/news/image results, and can optionally include markdown content for each web result.",
-		promptSnippet: "Search the web with Firecrawl for current information.",
+		label: "Firecrawl Web Search",
+		description: "Search the web with Firecrawl.",
+		promptSnippet: "Use search for current web information.",
 		promptGuidelines: [
 			"Use search when the user asks for current web information, discovery, or sources beyond the local workspace.",
-			"Use scrape after search when you need the full markdown content of a specific page."
+			"Use fetch after search when you need the full markdown content of a specific page."
 		],
 		parameters: Type.Object({
 			query: Type.String({ description: "The web search query." }),
 			limit: Type.Optional(Type.Integer({ description: "Maximum number of results to return. Defaults to 5.", minimum: 1, maximum: 20 })),
 			source: Type.Optional(StringEnum(["web", "news", "images"] as const)),
-			scrapeResults: Type.Optional(Type.Boolean({ description: "Whether to scrape result pages and include markdown. Defaults to false." }))
+			fetchResult: Type.Optional(Type.Boolean({ description: "Whether to fetch the first result and include markdown. Defaults to true." }))
 		}),
 		renderCall(args, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
 			const bits = [args.source ?? "web", `limit ${args.limit ?? 5}`]
-			if (args.scrapeResults) bits.push("scrape")
+			if (args.fetchResult ?? true) bits.push("fetch first")
 			text.setText(
 				`${theme.fg("toolTitle", theme.bold("search "))}${theme.fg("muted", `"${args.query}"`)} ${theme.fg("dim", `(${bits.join(", ")})`)}`
 			)
@@ -86,15 +111,46 @@ export default function (pi: ExtensionAPI) {
 				const result = await client.search(params.query, {
 					limit: params.limit ?? 5,
 					sources: [params.source ?? "web"],
-					scrapeOptions: params.scrapeResults ? { formats: ["markdown"], timeout: DEFAULT_TIMEOUT_MS } : undefined,
 					timeout: DEFAULT_TIMEOUT_MS
 				})
 
 				if (signal?.aborted) throw new Error("Search cancelled")
 
 				const output = withoutStatus(result)
+				const shouldFetch = params.fetchResult ?? true
+				if (output && typeof output === "object") {
+					const details = output as { data?: unknown; piFirecrawl?: unknown }
+					details.piFirecrawl = {
+						fetchResultDefault: true,
+						fetchResultBehavior: "only the first result is fetched and displayed; all result metadata remains in details",
+						fetchResultEnabled: shouldFetch
+					}
+
+					if (shouldFetch && Array.isArray(details.data)) {
+						const first = details.data[0]
+						if (first && typeof first === "object" && "url" in first && typeof first.url === "string") {
+							onUpdate?.({
+								content: [{ type: "text", text: `Fetching first Firecrawl result: ${first.url}` }],
+								details: undefined
+							})
+
+							const document = await client.scrapeUrl(first.url, {
+								formats: ["markdown"],
+								onlyMainContent: true,
+								timeout: DEFAULT_TIMEOUT_MS
+							})
+
+							if (signal?.aborted) throw new Error("Search cancelled")
+							if (!document.success) throw new Error(document.error)
+
+							if (document.markdown) (first as { markdown?: string }).markdown = document.markdown
+							;(first as { metadata?: unknown }).metadata = document.metadata
+						}
+					}
+				}
+
 				return {
-					content: [{ type: "text", text: stringify(output) }],
+					content: [{ type: "text", text: formatSearchOutput(output) }],
 					details: output
 				}
 			} catch (error) {
@@ -108,13 +164,13 @@ export default function (pi: ExtensionAPI) {
 	})
 
 	pi.registerTool({
-		name: "scrape",
-		label: "Scrape Page",
-		description: "Grab the content of a single page with Firecrawl and return agent-consumable markdown.",
-		promptSnippet: "Fetch a URL's page content as markdown with Firecrawl.",
+		name: "fetch",
+		label: "Firecrawl Page Fetch",
+		description: "Fetch a page as markdown with Firecrawl. Metadata is verbose and opt-in.",
+		promptSnippet: "Use fetch to fetch a URL as markdown.",
 		promptGuidelines: [
-			"Use scrape when you need the full readable markdown content of a known URL.",
-			"Prefer scrape over bash/fetch for web pages because scrape returns cleaned markdown suitable for agent context."
+			"Use fetch when you need the full readable markdown content of a known URL.",
+			"Prefer fetch over bash/curl for web pages because fetch returns cleaned markdown suitable for agent context."
 		],
 		parameters: Type.Object({
 			url: Type.String({ description: "The URL to fetch.", format: "uri" }),
@@ -125,19 +181,20 @@ export default function (pi: ExtensionAPI) {
 			timeout: Type.Optional(Type.Integer({ description: "Request timeout in milliseconds. Defaults to 30000.", minimum: 1 })),
 			includeMetadata: Type.Optional(
 				Type.Boolean({
-					description: "Append page metadata to the markdown output. Defaults to false. Full metadata is always available in details."
+					description:
+						"Append verbose page metadata to the markdown output. Defaults to false. Full metadata is always available in details."
 				})
 			)
 		}),
 		renderCall(args, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
-			text.setText(`${theme.fg("toolTitle", theme.bold("scrape "))}${theme.fg("muted", args.url)}`)
+			text.setText(`${theme.fg("toolTitle", theme.bold("fetch "))}${theme.fg("muted", args.url)}`)
 			return text
 		},
 		async execute(_toolCallId, params, signal, onUpdate) {
 			try {
 				onUpdate?.({
-					content: [{ type: "text", text: `Scraping page with Firecrawl: ${params.url}` }],
+					content: [{ type: "text", text: `Fetching page with Firecrawl: ${params.url}` }],
 					details: undefined
 				})
 
@@ -150,7 +207,7 @@ export default function (pi: ExtensionAPI) {
 				} satisfies ScrapeParams
 				const document = await client.scrapeUrl(params.url, scrapeParams)
 
-				if (signal?.aborted) throw new Error("Scrape cancelled")
+				if (signal?.aborted) throw new Error("Fetch cancelled")
 				if (!document.success) throw new Error(document.error)
 
 				const metadata = params.includeMetadata && document.metadata ? `\n\nMetadata:\n${stringify(document.metadata)}` : ""
@@ -162,7 +219,7 @@ export default function (pi: ExtensionAPI) {
 				}
 			} catch (error) {
 				return {
-					content: [{ type: "text", text: `Firecrawl scrape failed: ${asErrorMessage(error)}` }],
+					content: [{ type: "text", text: `Firecrawl fetch failed: ${asErrorMessage(error)}` }],
 					details: { error: asErrorMessage(error) },
 					isError: true
 				}

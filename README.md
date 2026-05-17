@@ -1,17 +1,17 @@
-# firecrawl-web-search
+# @xl0/pi-firecrawl
 
-Pi extension that adds Firecrawl-backed web `search` and page `scrape` tools.
+Pi extension package that adds Firecrawl-backed web `search` and page `fetch` tools.
 
 ## Install
 
 ```bash
-pi install npm:@xl0/firecrawl-web-search
+pi install npm:@xl0/pi-firecrawl
 ```
 
 Or load without installing:
 
 ```bash
-pi -e npm:@xl0/firecrawl-web-search
+pi -e npm:@xl0/pi-firecrawl
 ```
 
 ## Configuration
