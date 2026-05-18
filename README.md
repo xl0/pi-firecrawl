@@ -1,6 +1,6 @@
 # @xl0/pi-firecrawl
 
-Pi extension package that adds Firecrawl-backed web `search` and page `fetch` tools.
+Pi extension package that adds Firecrawl-backed `web_search` and `web_fetch` tools.
 
 ## Install
 

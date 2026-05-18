@@ -77,13 +77,13 @@ function asErrorMessage(error: unknown) {
 
 export default function (pi: ExtensionAPI) {
 	pi.registerTool({
-		name: "search",
+		name: "web_search",
 		label: "Firecrawl Web Search",
 		description: "Search the web with Firecrawl.",
-		promptSnippet: "Use search for current web information.",
+		promptSnippet: "Use web_search for current web information.",
 		promptGuidelines: [
-			"Use search when the user asks for current web information, discovery, or sources beyond the local workspace.",
-			"Use fetch after search when you need the full markdown content of a specific page."
+			"Use web_search when the user asks for current web information, discovery, or sources beyond the local workspace.",
+			"Use web_fetch after web_search when you need the full markdown content of a specific page."
 		],
 		parameters: Type.Object({
 			query: Type.String({ description: "The web search query." }),
@@ -96,7 +96,7 @@ export default function (pi: ExtensionAPI) {
 			const bits = [args.source ?? "web", `limit ${args.limit ?? 5}`]
 			if (args.fetchResult ?? true) bits.push("fetch first")
 			text.setText(
-				`${theme.fg("toolTitle", theme.bold("search "))}${theme.fg("muted", `"${args.query}"`)} ${theme.fg("dim", `(${bits.join(", ")})`)}`
+				`${theme.fg("toolTitle", theme.bold("web_search "))}${theme.fg("muted", `"${args.query}"`)} ${theme.fg("dim", `(${bits.join(", ")})`)}`
 			)
 			return text
 		},
@@ -164,13 +164,13 @@ export default function (pi: ExtensionAPI) {
 	})
 
 	pi.registerTool({
-		name: "fetch",
+		name: "web_fetch",
 		label: "Firecrawl Page Fetch",
 		description: "Fetch a page as markdown with Firecrawl. Metadata is verbose and opt-in.",
-		promptSnippet: "Use fetch to fetch a URL as markdown.",
+		promptSnippet: "Use web_fetch to fetch a URL as markdown.",
 		promptGuidelines: [
-			"Use fetch when you need the full readable markdown content of a known URL.",
-			"Prefer fetch over bash/curl for web pages because fetch returns cleaned markdown suitable for agent context."
+			"Use web_fetch when you need the full readable markdown content of a known URL.",
+			"Prefer web_fetch over bash/curl for web pages because web_fetch returns cleaned markdown suitable for agent context."
 		],
 		parameters: Type.Object({
 			url: Type.String({ description: "The URL to fetch.", format: "uri" }),
@@ -188,7 +188,7 @@ export default function (pi: ExtensionAPI) {
 		}),
 		renderCall(args, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
-			text.setText(`${theme.fg("toolTitle", theme.bold("fetch "))}${theme.fg("muted", args.url)}`)
+			text.setText(`${theme.fg("toolTitle", theme.bold("web_fetch "))}${theme.fg("muted", args.url)}`)
 			return text
 		},
 		async execute(_toolCallId, params, signal, onUpdate) {
