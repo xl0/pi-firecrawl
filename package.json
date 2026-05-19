@@ -36,6 +36,10 @@
 	"dependencies": {},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.14",
+		"@earendil-works/pi-agent-core": "file:../pi-mono/packages/agent",
+		"@earendil-works/pi-ai": "file:../pi-mono/packages/ai",
+		"@earendil-works/pi-coding-agent": "file:../pi-mono/packages/coding-agent",
+		"@earendil-works/pi-tui": "file:../pi-mono/packages/tui",
 		"@typescript/native-preview": "^7.0.0-dev.20260502.1",
 		"bun-types": "^1.3.13",
 		"typescript": "^6.0.3"

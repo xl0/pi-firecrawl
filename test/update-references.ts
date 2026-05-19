@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { fetchImpl, searchImpl } from "../extensions/web-tools/index.js"
+import { fetchImpl, searchImpl, type ToolResult } from "../extensions/web-tools/index.js"
 import type { WebToolsConfig } from "../extensions/web-tools/providers/types.js"
 import { loadTestEnv } from "./env.js"
 
@@ -30,7 +30,7 @@ for (const c of cases) {
 	console.log(`Updating reference: ${c.id} (${c.tool})`)
 
 	try {
-		let result: { content: Array<{ type: "text"; text: string }> }
+		let result: ToolResult
 		const args = c.args
 		if (c.tool === "search") {
 			const params: { query: string; limit?: number; source?: string; fetchResult?: boolean } = {
@@ -54,7 +54,7 @@ for (const c of cases) {
 			continue
 		}
 
-		const text = result.content[0]?.text ?? ""
+		const text = result.content.find(block => block.type === "text")?.text ?? ""
 		const refPath = join(refDir, `ref-${c.id}.txt`)
 		writeFileSync(refPath, text)
 		console.log(`  → wrote ${refPath} (${text.length} chars)`)

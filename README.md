@@ -1,6 +1,6 @@
 # @xl0/pi-web-tools
 
-Pi extension package providing `web_search` and `web_fetch` tools backed by Firecrawl, Exa, Tavily, and Brave Search.
+Pi extension package providing `web_search`, `web_fetch`, and `web_image` tools backed by Firecrawl, Exa, Tavily, and Brave Search.
 
 ## Install
 
@@ -38,6 +38,8 @@ Search and fetch can use different providers. If only `webSearch.provider` is se
 `web_fetch` falls back to it when that provider supports fetch.
 
 `waitFor` is provider-specific: Firecrawl supports it as an extra pre-capture delay; Exa and Tavily ignore it and `web_fetch` returns a warning if supplied.
+
+`web_image` fetches a direct image URL without provider config/API keys and returns a short text note plus image content to vision-capable models, matching Pi's `read` image behavior. Supported MIME types: PNG, JPEG, WebP, GIF. Defaults to a 5 MB download cap and resizes through Pi's inline image helper before returning content.
 
 ## Providers
 
