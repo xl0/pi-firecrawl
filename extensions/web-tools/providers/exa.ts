@@ -1,3 +1,4 @@
+import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
 const BASE_URL = "https://api.exa.ai"
@@ -14,8 +15,6 @@ interface SearchBody {
 interface ContentsBody {
 	ids: string[]
 	text: boolean
-	maxAgeHours?: number
-	livecrawlTimeout?: number
 }
 
 interface ExaSearchResult {
@@ -36,31 +35,21 @@ function sourceToCategory(source?: string): string | undefined {
 	return undefined
 }
 
-async function fetchJson(url: string, body: unknown, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
-	const controller = new AbortController()
-	const timer = setTimeout(() => controller.abort(), timeout)
-	signal?.addEventListener("abort", () => controller.abort(), { once: true })
-
-	try {
-		const res = await fetch(url, {
+function fetchJson(url: string, body: unknown, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
+	return requestJson(
+		"Exa",
+		url,
+		{
 			method: "POST",
 			headers: {
 				"x-api-key": apiKey,
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify(body),
-			signal: controller.signal
-		})
-
-		if (!res.ok) {
-			const text = await res.text()
-			throw new Error(`Exa request failed (${res.status}): ${text}`)
-		}
-
-		return res.json()
-	} finally {
-		clearTimeout(timer)
-	}
+			body: JSON.stringify(body)
+		},
+		timeout,
+		signal
+	)
 }
 
 export const exaProvider: Provider = {

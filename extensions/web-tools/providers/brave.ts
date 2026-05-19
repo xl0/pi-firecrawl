@@ -1,3 +1,4 @@
+import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
 const BASE_URL = "https://api.search.brave.com/res/v1"
@@ -7,7 +8,6 @@ interface BraveWebResult {
 	title: string
 	url: string
 	description: string
-	extra_snippets?: string[]
 }
 
 interface BraveWebResponse {
@@ -38,29 +38,19 @@ function stripHtmlTags(text: string): string {
 	return text.replace(/<[^>]+>/g, "")
 }
 
-async function fetchJson(url: string, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
-	const controller = new AbortController()
-	const timer = setTimeout(() => controller.abort(), timeout)
-	signal?.addEventListener("abort", () => controller.abort(), { once: true })
-
-	try {
-		const res = await fetch(url, {
+function fetchJson(url: string, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
+	return requestJson(
+		"Brave",
+		url,
+		{
 			headers: {
 				"X-Subscription-Token": apiKey,
 				Accept: "application/json"
-			},
-			signal: controller.signal
-		})
-
-		if (!res.ok) {
-			const text = await res.text()
-			throw new Error(`Brave request failed (${res.status}): ${text}`)
-		}
-
-		return res.json()
-	} finally {
-		clearTimeout(timer)
-	}
+			}
+		},
+		timeout,
+		signal
+	)
 }
 
 function buildSearchUrl(source: string | undefined, query: string, count: number): string {
@@ -78,7 +68,6 @@ export const braveProvider: Provider = {
 	id: "brave",
 	label: "Brave Search",
 	envApiKey: "BRAVE_API_KEY",
-	hasFetch: false,
 
 	async search(apiKey, query, opts, signal) {
 		const url = buildSearchUrl(opts.source, query, opts.limit)

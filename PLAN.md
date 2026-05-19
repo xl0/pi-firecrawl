@@ -17,6 +17,7 @@ extensions/web-tools/
   format.ts             - formatSearchOutput, stringify, asErrorMessage
   providers/
     types.ts            - Provider/WebToolsConfig interfaces
+    http.ts             - shared JSON request helper
     firecrawl.ts        - Firecrawl search + fetch
     exa.ts              - Exa search + fetch
     tavily.ts           - Tavily search + fetch
@@ -36,7 +37,6 @@ interface Provider {
   readonly id: string
   readonly label: string
   readonly envApiKey: string
-  readonly hasFetch?: boolean // default true; false for search-only providers
   search(apiKey: string, query: string, opts: {limit: number; source?: string; timeout?: number}, signal?: AbortSignal): Promise<{results: SearchResult[]; raw: unknown}>
   fetch?(apiKey: string, url: string, opts: {waitFor?: number; timeout?: number}, signal?: AbortSignal): Promise<{markdown: string; metadata?: unknown; raw: unknown}>
 }
@@ -58,7 +58,7 @@ interface Provider {
 
 ## Provider decisions
 - Firecrawl honors `waitFor`; Exa and Tavily ignore it and `web_fetch` warns.
-- Brave is search-only; fetch menu excludes it and `web_fetch` errors if Brave is the only resolved fetch provider.
+- Fetch capability is determined by whether a provider implements `fetch`; Brave is search-only and `web_fetch` errors if Brave is the only resolved fetch provider.
 - Source mapping is provider-specific: Firecrawl uses `sources`; Exa/Tavily map `news` to their news category/topic and treat `images` as unsupported/no-op; Brave uses separate web/news/images endpoints.
 - Each provider normalizes API responses into `SearchResult[]` and exposes raw API response in `details`.
 - `format.ts` remains provider-agnostic.
@@ -73,4 +73,5 @@ interface Provider {
 - [x] Firecrawl, Exa, Tavily, Brave providers implemented.
 - [x] `/web-tools` provider-driven config command implemented.
 - [x] Integration tests: 10 cases pass (3 firecrawl + 3 exa + 3 tavily + 1 brave).
-- [x] Test harness loads `test/.env`, avoids config races, removes temp config in `finally`, parses exact final verdicts, and reference updates exit non-zero on failures.
+- [x] Test harness loads `test/.env`, avoids config races, runs Pi with `--no-session`, removes temp config in `finally`, parses exact final verdicts, and reference updates exit non-zero on failures.
+- [x] Provider HTTP timeout/error handling deduplicated in `providers/http.ts`; README provider list updated.
