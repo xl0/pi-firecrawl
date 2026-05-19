@@ -67,7 +67,7 @@ interface Provider {
 
 ## Test plan
 - Keep LLM-judged integration tests as smoke coverage over live providers.
-- Prefer adding cheap direct tests for deterministic logic if this grows: formatting, config/provider resolution, Brave fetch rejection, env loading, image MIME/size validation.
+- Keep `test:image` as a direct external-network smoke test for `web_image`; prefer adding cheap direct tests for more deterministic logic if this grows: formatting, config/provider resolution, Brave fetch rejection, env loading, image MIME/size validation.
 
 ## Done
 - [x] Package renamed, zero runtime deps, old extension removed, checks pass.

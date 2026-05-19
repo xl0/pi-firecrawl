@@ -15,6 +15,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/env.ts` — tiny `.env` loader shared by test scripts.
 `test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)` with `--no-session`. Per-provider config written to `.pi/xl0-web-tools.json` and removed in a `finally` block. LLM compares output structure to reference with per-case expectations; final line must be exact `OK` or `FAIL: ...`. Summary at end, exits non-zero on failures.
 `test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`/environment, saves tool text as reference, exits non-zero on failures.
+`test/image.ts` — direct external-network smoke test for `imageImpl`: small PNG from httpbin remains unresized; large Picsum JPEG is resized to Pi inline limits.
 
 ## Extension
 `extensions/web-tools/index.ts` registers three tools and one command.
