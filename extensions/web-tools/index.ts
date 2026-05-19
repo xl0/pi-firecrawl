@@ -123,16 +123,12 @@ export async function searchImpl(
 		})
 		try {
 			const fetchProvider = getProvider("fetch", config)
-			if (fetchProvider.hasFetch === false) {
-				first.description = first.description || "[Fetch skipped: Brave Search does not support page fetching]"
-			} else {
-				const fetchApiKey = resolveApiKey(fetchProvider, config)
-				const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
+			const fetchApiKey = resolveApiKey(fetchProvider, config)
+			const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
 
-				if (signal?.aborted) throw new Error("Search cancelled")
-				first.markdown = fetched.markdown
-				if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
-			}
+			if (signal?.aborted) throw new Error("Search cancelled")
+			first.markdown = fetched.markdown
+			if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
 		} catch (err) {
 			first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`
 		}
