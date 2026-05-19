@@ -8,8 +8,16 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl + Ex
 - Pi entry: `extensions/` via `package.json#pi.extensions`.
 - Zero runtime dependencies. Pi APIs are peer dependencies.
 
+## Test infrastructure
+`test/cases.json` — 6 test cases (firecrawl + exa: search, search+fetch, fetch per provider). Queries are stable topics to avoid content drift.
+`test/references/ref-*.txt` — expected tool output snapshots (generated, committed).
+`test/.env` — API keys for providers (gitignored).
+`test/run.ts` — groups cases by provider, runs each group in parallel via `spawn("pi", ...)`. Per-group provider config written to `.pi/xl0-web-tools.json`. LLM compares tool output to reference, replies OK/FAIL. Summary at end, exits non-zero on failures.
+`test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`, saves `formatSearchOutput` result as reference.
+
 ## Extension
-`extensions/web-tools/index.ts` registers two tools and one command:
+`extensions/web-tools/index.ts` registers two tools and one command.
+Exports `searchImpl` and `fetchImpl` standalone functions for testing — they take `WebToolsConfig` + params + optional signal/onUpdate, call provider methods, return `{content, details}`.
 
 - `web_search`: web/news/images search dispatching to configured search provider.
 - `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Public options: `url`, optional `waitFor`, optional `timeout`, optional `includeMetadata`. Tool call rendering shows supplied non-default args.

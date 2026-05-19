@@ -73,6 +73,99 @@ function writeConfigFile(path: string, config: WebToolsConfig): void {
 	writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`, "utf-8")
 }
 
+export interface ToolResult {
+	content: Array<{ type: "text"; text: string }>
+	details: unknown
+	isError?: boolean
+}
+
+// ── Standalone tool implementations (exported for testing) ──────────────────
+
+export async function searchImpl(
+	config: WebToolsConfig,
+	params: { query: string; limit?: number; source?: string; fetchResult?: boolean },
+	signal?: AbortSignal,
+	onUpdate?: (result: ToolResult) => void
+): Promise<ToolResult> {
+	const searchProvider = getProvider("search", config)
+	const apiKey = resolveApiKey(searchProvider, config)
+
+	const searchResult = await searchProvider.search(
+		apiKey,
+		params.query,
+		{
+			limit: params.limit ?? 5,
+			timeout: DEFAULT_TIMEOUT_MS,
+			...(params.source !== undefined ? { source: params.source } : {})
+		},
+		signal
+	)
+
+	if (signal?.aborted) throw new Error("Search cancelled")
+
+	const shouldFetch = params.fetchResult ?? true
+	const first = searchResult.results[0]
+	if (shouldFetch && first?.url) {
+		onUpdate?.({
+			content: [{ type: "text" as const, text: `Fetching first result: ${first.url}` }],
+			details: undefined as unknown
+		})
+		try {
+			const fetchProvider = getProvider("fetch", config)
+			const fetchApiKey = resolveApiKey(fetchProvider, config)
+			const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
+
+			if (signal?.aborted) throw new Error("Search cancelled")
+			first.markdown = fetched.markdown
+			if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
+		} catch (err) {
+			first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`
+		}
+	}
+
+	const result: ToolResult = {
+		content: [{ type: "text" as const, text: formatSearchOutput(searchResult.results) }],
+		details: searchResult.raw
+	}
+	onUpdate?.(result)
+	return result
+}
+
+export async function fetchImpl(
+	config: WebToolsConfig,
+	params: { url: string; waitFor?: number; timeout?: number; includeMetadata?: boolean },
+	signal?: AbortSignal,
+	onUpdate?: (result: ToolResult) => void
+): Promise<ToolResult> {
+	const fetchProvider = getProvider("fetch", config)
+	const apiKey = resolveApiKey(fetchProvider, config)
+
+	const result = await fetchProvider.fetch(
+		apiKey,
+		params.url,
+		{
+			timeout: params.timeout ?? DEFAULT_TIMEOUT_MS,
+			...(params.waitFor !== undefined ? { waitFor: params.waitFor } : {})
+		},
+		signal
+	)
+
+	if (signal?.aborted) throw new Error("Fetch cancelled")
+
+	const warning =
+		fetchProvider.id === "exa" && params.waitFor !== undefined
+			? `Warning: Exa ignores waitFor; request sent without any extra page-load delay.\n\n`
+			: ""
+	const metadata = params.includeMetadata && result.metadata ? `\n\nMetadata:\n${stringify(result.metadata)}` : ""
+
+	const toolResult: ToolResult = {
+		content: [{ type: "text" as const, text: `${warning}${result.markdown}${metadata}` }],
+		details: result.raw
+	}
+	onUpdate?.(toolResult)
+	return toolResult
+}
+
 // ── Extension ───────────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
@@ -114,51 +207,11 @@ export default function (pi: ExtensionAPI) {
 			try {
 				const config = loadConfig(ctx.cwd)
 				const searchProvider = getProvider("search", config)
-				const apiKey = resolveApiKey(searchProvider, config)
-
 				onUpdate?.({
 					content: [{ type: "text", text: `Searching web with ${searchProvider.label} for: ${params.query}` }],
-					details: undefined
+					details: undefined as unknown
 				})
-
-				const searchResult = await searchProvider.search(
-					apiKey,
-					params.query,
-					{
-						limit: params.limit ?? 5,
-						timeout: DEFAULT_TIMEOUT_MS,
-						...(params.source !== undefined ? { source: params.source } : {})
-					},
-					signal
-				)
-
-				if (signal?.aborted) throw new Error("Search cancelled")
-
-				const shouldFetch = params.fetchResult ?? true
-				const first = searchResult.results[0]
-				if (shouldFetch && first?.url) {
-					onUpdate?.({
-						content: [{ type: "text", text: `Fetching first result with ${searchProvider.label} (fetch step): ${first.url}` }],
-						details: undefined
-					})
-
-					try {
-						const fetchProvider = getProvider("fetch", config)
-						const fetchApiKey = resolveApiKey(fetchProvider, config)
-						const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
-
-						if (signal?.aborted) throw new Error("Search cancelled")
-						first.markdown = fetched.markdown
-						if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
-					} catch (err) {
-						first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`
-					}
-				}
-
-				return {
-					content: [{ type: "text", text: formatSearchOutput(searchResult.results) }],
-					details: searchResult.raw
-				}
+				return await searchImpl(config, params, signal, onUpdate)
 			} catch (error) {
 				return {
 					content: [{ type: "text", text: `Web search failed: ${asErrorMessage(error)}` }],
@@ -208,35 +261,11 @@ export default function (pi: ExtensionAPI) {
 			try {
 				const config = loadConfig(ctx.cwd)
 				const fetchProvider = getProvider("fetch", config)
-				const apiKey = resolveApiKey(fetchProvider, config)
-
 				onUpdate?.({
 					content: [{ type: "text", text: `Fetching page with ${fetchProvider.label}: ${params.url}` }],
-					details: undefined
+					details: undefined as unknown
 				})
-
-				const result = await fetchProvider.fetch(
-					apiKey,
-					params.url,
-					{
-						timeout: params.timeout ?? DEFAULT_TIMEOUT_MS,
-						...(params.waitFor !== undefined ? { waitFor: params.waitFor } : {})
-					},
-					signal
-				)
-
-				if (signal?.aborted) throw new Error("Fetch cancelled")
-
-				const warning =
-					fetchProvider.id === "exa" && params.waitFor !== undefined
-						? `Warning: Exa ignores waitFor; request sent without any extra page-load delay.\n\n`
-						: ""
-				const metadata = params.includeMetadata && result.metadata ? `\n\nMetadata:\n${stringify(result.metadata)}` : ""
-
-				return {
-					content: [{ type: "text", text: `${warning}${result.markdown}${metadata}` }],
-					details: result.raw
-				}
+				return await fetchImpl(config, params, signal, onUpdate)
 			} catch (error) {
 				return {
 					content: [{ type: "text", text: `Web fetch failed: ${asErrorMessage(error)}` }],
