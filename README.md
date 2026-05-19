@@ -16,7 +16,7 @@ pi -e npm:@xl0/pi-web-tools
 
 ## Configuration
 
-Run `/web-provider` in Pi to configure providers interactively, or create
+Run `/web-tools` in Pi to configure providers interactively, or create
 `~/.pi/agent/xl0-web-tools.json` (global) or `.pi/xl0-web-tools.json` (project):
 
 ```json
@@ -34,6 +34,8 @@ API keys can also be set via environment variables: `FIRECRAWL_API_KEY`, `EXA_AP
 
 Search and fetch can use different providers. If only `webSearch.provider` is set,
 `web_fetch` falls back to it.
+
+`waitFor` is provider-specific in practice: Firecrawl supports it as an extra pre-capture delay; Exa ignores it and `web_fetch` returns a warning if supplied.
 
 ## Providers
 

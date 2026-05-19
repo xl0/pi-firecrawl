@@ -27,7 +27,7 @@ function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): st
 	const id = direct || fallback
 	if (!id) {
 		const hint = type === "search" ? "webSearch.provider" : "webFetch.provider"
-		throw new Error(`No ${type} provider configured. Set ${hint} via /web-provider.`)
+		throw new Error(`No ${type} provider configured. Set ${hint} via /web-tools.`)
 	}
 	if (!providers[id]) throw new Error(`Unknown provider "${id}". Available: ${Object.keys(providers).join(", ")}.`)
 	return id
@@ -45,7 +45,7 @@ function resolveApiKey(provider: Provider, config: WebToolsConfig): string {
 	if (key) return key
 	const envKey = process.env[provider.envApiKey]
 	if (envKey) return envKey
-	throw new Error(`No API key for ${provider.label}. Set it via /web-provider or set the ${provider.envApiKey} environment variable.`)
+	throw new Error(`No API key for ${provider.label}. Set it via /web-tools or set the ${provider.envApiKey} environment variable.`)
 }
 
 function loadConfig(cwd: string): WebToolsConfig {
@@ -145,15 +145,7 @@ export default function (pi: ExtensionAPI) {
 					try {
 						const fetchProvider = getProvider("fetch", config)
 						const fetchApiKey = resolveApiKey(fetchProvider, config)
-						const fetched = await fetchProvider.fetch(
-							fetchApiKey,
-							first.url,
-							{
-								onlyMainContent: true,
-								timeout: DEFAULT_TIMEOUT_MS
-							},
-							signal
-						)
+						const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
 
 						if (signal?.aborted) throw new Error("Search cancelled")
 						first.markdown = fetched.markdown
@@ -188,7 +180,6 @@ export default function (pi: ExtensionAPI) {
 		],
 		parameters: Type.Object({
 			url: Type.String({ description: "The URL to fetch.", format: "uri" }),
-			onlyMainContent: Type.Optional(Type.Boolean({ description: "Only return the main page content. Defaults to true." })),
 			waitFor: Type.Optional(
 				Type.Integer({
 					description: "Milliseconds to wait before capturing content, useful for JS-heavy pages.",
@@ -205,7 +196,12 @@ export default function (pi: ExtensionAPI) {
 		}),
 		renderCall(args, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
-			text.setText(`${theme.fg("toolTitle", theme.bold("web_fetch "))}${theme.fg("muted", args.url)}`)
+			const bits: string[] = []
+			if (args.waitFor !== undefined) bits.push(`wait ${args.waitFor}ms`)
+			if (args.timeout !== undefined) bits.push(`timeout ${args.timeout}ms`)
+			if (args.includeMetadata) bits.push("metadata")
+			const suffix = bits.length ? ` ${theme.fg("dim", `(${bits.join(", ")})`)}` : ""
+			text.setText(`${theme.fg("toolTitle", theme.bold("web_fetch "))}${theme.fg("muted", args.url)}${suffix}`)
 			return text
 		},
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
@@ -223,7 +219,6 @@ export default function (pi: ExtensionAPI) {
 					apiKey,
 					params.url,
 					{
-						onlyMainContent: params.onlyMainContent ?? true,
 						timeout: params.timeout ?? DEFAULT_TIMEOUT_MS,
 						...(params.waitFor !== undefined ? { waitFor: params.waitFor } : {})
 					},
@@ -232,10 +227,14 @@ export default function (pi: ExtensionAPI) {
 
 				if (signal?.aborted) throw new Error("Fetch cancelled")
 
+				const warning =
+					fetchProvider.id === "exa" && params.waitFor !== undefined
+						? `Warning: Exa ignores waitFor; request sent without any extra page-load delay.\n\n`
+						: ""
 				const metadata = params.includeMetadata && result.metadata ? `\n\nMetadata:\n${stringify(result.metadata)}` : ""
 
 				return {
-					content: [{ type: "text", text: `${result.markdown}${metadata}` }],
+					content: [{ type: "text", text: `${warning}${result.markdown}${metadata}` }],
 					details: result.raw
 				}
 			} catch (error) {
@@ -248,11 +247,11 @@ export default function (pi: ExtensionAPI) {
 		}
 	})
 
-	pi.registerCommand("web-provider", {
+	pi.registerCommand("web-tools", {
 		description: "Configure web search and fetch providers",
 		async handler(_args, ctx) {
 			if (!ctx.hasUI) {
-				ctx.ui.notify("The /web-provider command is only available in interactive mode.", "warning")
+				ctx.ui.notify("The /web-tools command is only available in interactive mode.", "warning")
 				return
 			}
 

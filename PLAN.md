@@ -5,9 +5,10 @@
 - Keep `web_search` and `web_fetch` tool names — dispatch to configured provider at runtime.
 - Search and fetch providers configurable independently.
 - Persist config in `xl0-web-tools.json` (~/.pi/agent/ + .pi/ merge, project overrides global).
-- Register a `/web-provider` command for interactive provider selection and API key config.
+- Register a `/web-tools` command for interactive provider selection and API key config.
 - Both providers use plain `fetch()` — zero runtime dependencies beyond Pi peer deps.
 - Tool labels/descriptions/progress messages made provider-agnostic (no "Firecrawl" branding).
+- Keep provider-specific fetch behavior minimal: Firecrawl honors `waitFor`; Exa ignores it and `web_fetch` warns.
 - Remove `dotenv` dependency — API keys from config or `process.env` only.
 - No backwards compat: both providers must be explicitly configured, or tools error with guidance.
 
@@ -39,7 +40,7 @@ interface Provider {
   readonly label: string
   readonly envApiKey: string
   search(query: string, opts: {limit: number; source?: string; timeout?: number}, signal?: AbortSignal): Promise<{results: SearchResult[]; raw: unknown}>
-  fetch(url: string, opts: {onlyMainContent?: boolean; waitFor?: number; timeout?: number}, signal?: AbortSignal): Promise<{markdown: string; metadata?: unknown; raw: unknown}>
+  fetch(url: string, opts: {waitFor?: number; timeout?: number}, signal?: AbortSignal): Promise<{markdown: string; metadata?: unknown; raw: unknown}>
 }
 ```
 - Each provider normalizes its API response into `SearchResult[]`. `raw` is the untouched API response for `details`.
@@ -57,12 +58,12 @@ interface Provider {
 }
 ```
 - Source param (`web`/`news`/`images`) mapping per provider: Firecrawl uses sources array; Exa maps `web`→no filter, `news`→category:"news", `images`→no filter (unsupported).
-- No defaults — if not configured, tool errors with pointer to `/web-provider`.
+- No defaults — if not configured, tool errors with pointer to `/web-tools`.
 - API key resolution: `webApiKeys.<providerId>` → `process.env[PROVIDER_ENV_KEY]` → error.
 - Config files: `~/.pi/agent/xl0-web-tools.json` (global) and `.pi/xl0-web-tools.json` (project). Project merges over global.
-- `/web-provider` command writes to user-chosen scope (global or project).
+- `/web-tools` command writes to user-chosen scope (global or project).
 
-## Command: `/web-provider`
+## Command: `/web-tools`
 Sequential dialogs using ctx.ui.select / ctx.ui.input:
 - First: select scope (global `~/.pi/agent/` or project `.pi/`)
 - Show current config for that scope (search/fetch provider, which keys are set)
