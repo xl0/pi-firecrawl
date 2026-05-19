@@ -9,11 +9,12 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 - Zero runtime dependencies. Pi APIs are peer dependencies.
 
 ## Test infrastructure
-`test/cases.json` — 3 query-pattern cases (`search`, `search-fetch`, `fetch`), each tested against all applicable providers. `search`/`search-fetch` run on firecrawl+exa+tavily+brave; `fetch` runs on firecrawl+exa+tavily (brave is search-only). Queries are stable topics to avoid content drift.
+`test/cases.json` — 3 query-pattern cases (`search`, `search-fetch`, `fetch`), each tested against applicable providers. `search` runs on firecrawl+exa+tavily+brave; `search-fetch`/`fetch` run on firecrawl+exa+tavily (brave is search-only). Queries are stable topics to avoid content drift.
 `test/references/ref-*.txt` — shared reference snapshots, generated from Tavily (provider-agnostic). All providers compare against the same refs; LLM judges formatting/structure, not content.
-`test/.env` — API keys for providers (gitignored).
-`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)`. Per-provider config written to `.pi/xl0-web-tools.json`. LLM compares tool output to reference, replies OK/FAIL. Summary at end, exits non-zero on failures.
-`test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`, saves `formatSearchOutput` result as reference.
+`test/.env` — API keys for providers (gitignored), loaded by test scripts without overriding existing environment variables.
+`test/env.ts` — tiny `.env` loader shared by test scripts.
+`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)`. Per-provider config written to `.pi/xl0-web-tools.json` and removed at the end. LLM compares output structure to reference with per-case expectations, replies OK/FAIL. Summary at end, exits non-zero on failures.
+`test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`/environment, saves tool text as reference.
 
 ## Extension
 `extensions/web-tools/index.ts` registers two tools and one command.

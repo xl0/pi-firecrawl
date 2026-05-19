@@ -113,7 +113,7 @@ Sequential dialogs using ctx.ui.select / ctx.ui.input:
 - [x] Package renamed, zero runtime deps, old extension removed, all files created, checks pass.
 - [x] Plan for Tavily + Brave Search providers
 - [x] Restructured `index.ts`: extracted `searchImpl`/`fetchImpl` standalone functions (exported for testing)
-- [x] Test infrastructure: LLM-judged integration tests with parallel runner, reference snapshots, update script
+- [x] Test infrastructure: LLM-judged integration tests with sequential provider config, reference snapshots, update script
 - [x] 6 tests pass: firecrawl-search, firecrawl-search-fetch, firecrawl-fetch, exa-search, exa-search-fetch, exa-fetch
 
 ## Done
@@ -122,4 +122,4 @@ Sequential dialogs using ctx.ui.select / ctx.ui.input:
 - [x] Create `brave.ts` provider (search-only)
 - [x] Update `index.ts`: register both, update `/web-tools` to be provider-driven
 - [x] Run `bun run check`
-- [x] Integration tests: 11 cases pass (3 firecrawl + 3 exa + 3 tavily + 2 brave)
+- [x] Integration tests: 10 cases pass (3 firecrawl + 3 exa + 3 tavily + 1 brave)
