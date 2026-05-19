@@ -98,10 +98,6 @@ export const exaProvider: Provider = {
 			ids: [url],
 			text: true
 		}
-		if (opts.waitFor !== undefined) {
-			body.maxAgeHours = 0
-			body.livecrawlTimeout = Math.ceil(opts.waitFor / 1000)
-		}
 
 		const raw = await fetchJson(`${BASE_URL}/contents`, body, apiKey, opts.timeout ?? DEFAULT_TIMEOUT_MS, signal)
 		const results = (raw as { results?: ExaContentsResult[] }).results

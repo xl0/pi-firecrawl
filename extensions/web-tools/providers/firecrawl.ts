@@ -83,7 +83,7 @@ export const firecrawlProvider: Provider = {
 		const body: ScrapeBody = {
 			url,
 			formats: ["markdown"],
-			onlyMainContent: opts.onlyMainContent ?? true
+			onlyMainContent: true
 		}
 		if (opts.waitFor !== undefined) body.waitFor = opts.waitFor
 

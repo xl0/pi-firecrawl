@@ -18,7 +18,7 @@ export interface Provider {
 	fetch(
 		apiKey: string,
 		url: string,
-		opts: { onlyMainContent?: boolean; waitFor?: number; timeout?: number },
+		opts: { waitFor?: number; timeout?: number },
 		signal?: AbortSignal
 	): Promise<{ markdown: string; metadata?: unknown; raw: unknown }>
 }
