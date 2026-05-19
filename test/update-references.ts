@@ -5,9 +5,9 @@ import type { WebToolsConfig } from "../extensions/web-tools/providers/types.js"
 
 interface TestCase {
 	id: string
-	provider: string
 	tool: string
 	args: Record<string, unknown>
+	providers: string[]
 }
 
 const cases = JSON.parse(readFileSync(join(import.meta.dirname, "cases.json"), "utf-8")) as TestCase[]
@@ -17,12 +17,12 @@ mkdirSync(refDir, { recursive: true })
 
 for (const c of cases) {
 	const config: WebToolsConfig = {
-		webSearch: { provider: c.provider },
-		webFetch: { provider: c.provider },
+		webSearch: { provider: "tavily" },
+		webFetch: { provider: "tavily" },
 		webApiKeys: {}
 	}
 
-	console.log(`Updating reference: ${c.id} (${c.tool}, provider=${c.provider})`)
+	console.log(`Updating reference: ${c.id} (${c.tool})`)
 
 	try {
 		let result: { content: Array<{ type: "text"; text: string }> }

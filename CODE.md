@@ -1,7 +1,7 @@
 # Code
 
 ## Purpose
-Minimal Pi extension package providing multi-provider web access (Firecrawl + Exa) for Pi.
+Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa, Tavily, Brave) for Pi.
 
 ## Package
 - Published package name: `@xl0/pi-web-tools` at version `0.3.0`.
@@ -9,8 +9,8 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl + Ex
 - Zero runtime dependencies. Pi APIs are peer dependencies.
 
 ## Test infrastructure
-`test/cases.json` — 6 test cases (firecrawl + exa: search, search+fetch, fetch per provider). Queries are stable topics to avoid content drift.
-`test/references/ref-*.txt` — expected tool output snapshots (generated, committed).
+`test/cases.json` — 3 query-pattern cases (`search`, `search-fetch`, `fetch`), each tested against all applicable providers. `search`/`search-fetch` run on firecrawl+exa+tavily+brave; `fetch` runs on firecrawl+exa+tavily (brave is search-only). Queries are stable topics to avoid content drift.
+`test/references/ref-*.txt` — shared reference snapshots, generated from Tavily (provider-agnostic). All providers compare against the same refs; LLM judges formatting/structure, not content.
 `test/.env` — API keys for providers (gitignored).
 `test/run.ts` — groups cases by provider, runs each group in parallel via `spawn("pi", ...)`. Per-group provider config written to `.pi/xl0-web-tools.json`. LLM compares tool output to reference, replies OK/FAIL. Summary at end, exits non-zero on failures.
 `test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`, saves `formatSearchOutput` result as reference.
@@ -44,10 +44,25 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 - Auth: `x-api-key` header.
 - Results normalized from `results[]` array. Fetch checks `statuses` for per-URL errors.
 
+### Tavily (`providers/tavily.ts`)
+- Search: POST `/search` with query, max_results, search_depth:"basic", optional topic. Source `web`→no topic filter, `news`→topic:"news", `images`→unsupported.
+- Search result descriptions use Tavily's `content` field (semantic snippets).
+- Fetch: POST `/extract` with urls:[url], extract_depth:"basic", format:"markdown". Returns `{results:[{url, raw_content, images, favicon}], failed_results[]}`.
+- `waitFor` is ignored for Tavily (no JS rendering); `web_fetch` warns if supplied.
+- Auth: `Authorization: Bearer <key>`. Env key: `TAVILY_API_KEY`.
+
+### Brave Search (`providers/brave.ts`)
+- Search-only provider (`hasFetch: false`). `webFetch` fallback will not resolve to Brave.
+- Search: GET `/web/search`, `/news/search`, or `/images/search` with query params `q`, `count`. Source determines endpoint.
+- Web response: `{web:{results:[{title, url, description}]}}`. News response: `{results:[...]}`. Image response: `{results:[{url, title?, description?}]}`.
+- `description` strips HTML tags (`<strong>` etc) from Brave snippets.
+- If Brave is configured as the only provider and `web_fetch` is called, it errors with guidance about needing a fetch-capable provider.
+- Auth: `X-Subscription-Token` header. Env key: `BRAVE_API_KEY`.
+
 ## Shared types (`providers/types.ts`)
 ```ts
 SearchResult { title, url, description?, markdown? }
-Provider { id, label, envApiKey, search(), fetch() }
+Provider { id, label, envApiKey, hasFetch?, search(), fetch?() }
 WebToolsConfig { webSearch?, webFetch?, webApiKeys? }
 ```
 

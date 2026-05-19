@@ -1,38 +1,20 @@
 [
 	{
-		"id": "firecrawl-search",
-		"provider": "firecrawl",
+		"id": "search",
 		"tool": "search",
-		"args": { "query": "artificial intelligence history", "limit": 3, "fetchResult": false }
+		"args": { "query": "artificial intelligence history", "limit": 3, "fetchResult": false },
+		"providers": ["firecrawl", "exa", "tavily", "brave"]
 	},
 	{
-		"id": "firecrawl-search-fetch",
-		"provider": "firecrawl",
+		"id": "search-fetch",
 		"tool": "search",
-		"args": { "query": "quantum computing explained", "limit": 2, "fetchResult": true }
+		"args": { "query": "quantum computing explained", "limit": 2, "fetchResult": true },
+		"providers": ["firecrawl", "exa", "tavily", "brave"]
 	},
 	{
-		"id": "firecrawl-fetch",
-		"provider": "firecrawl",
+		"id": "fetch",
 		"tool": "fetch",
-		"args": { "url": "https://example.com" }
-	},
-	{
-		"id": "exa-search",
-		"provider": "exa",
-		"tool": "search",
-		"args": { "query": "artificial intelligence history", "limit": 3, "fetchResult": false }
-	},
-	{
-		"id": "exa-search-fetch",
-		"provider": "exa",
-		"tool": "search",
-		"args": { "query": "quantum computing explained", "limit": 2, "fetchResult": true }
-	},
-	{
-		"id": "exa-fetch",
-		"provider": "exa",
-		"tool": "fetch",
-		"args": { "url": "https://example.com" }
+		"args": { "url": "https://example.com" },
+		"providers": ["firecrawl", "exa", "tavily"]
 	}
 ]

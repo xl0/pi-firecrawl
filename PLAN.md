@@ -116,9 +116,10 @@ Sequential dialogs using ctx.ui.select / ctx.ui.input:
 - [x] Test infrastructure: LLM-judged integration tests with parallel runner, reference snapshots, update script
 - [x] 6 tests pass: firecrawl-search, firecrawl-search-fetch, firecrawl-fetch, exa-search, exa-search-fetch, exa-fetch
 
-## Remaining
-- [ ] Add `hasFetch` to Provider type
-- [ ] Create `tavily.ts` provider (search + fetch)
-- [ ] Create `brave.ts` provider (search-only)
-- [ ] Update `index.ts`: register both, update `/web-tools` to be provider-driven
-- [ ] Run `bun run check`
+## Done
+- [x] Add `hasFetch` to Provider type
+- [x] Create `tavily.ts` provider (search + fetch)
+- [x] Create `brave.ts` provider (search-only)
+- [x] Update `index.ts`: register both, update `/web-tools` to be provider-driven
+- [x] Run `bun run check`
+- [x] Integration tests: 11 cases pass (3 firecrawl + 3 exa + 3 tavily + 2 brave)

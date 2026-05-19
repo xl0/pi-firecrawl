@@ -1,7 +1,0 @@
-1. Explain it like I'm 5? : r/QuantumComputing - Reddit
-   https://www.reddit.com/r/QuantumComputing/comments/yjnvwh/explain_it_like_im_5/
-   Quantum computers are machines that do quantum computation using tiny physical systems that are subject to the laws of quantum physics. These ...
-
-2. Quantum Computing Explained | NIST
-   https://www.nist.gov/quantum-information-science/quantum-computing-explained
-   These computers work by harnessing quantum physics — the strange, often counterintuitive laws that govern the universe at its smallest scales ...

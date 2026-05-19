@@ -1,0 +1,20 @@
+# Example Domains
+
+As described in [RFC 2606](/go/rfc2606) and [RFC 6761](/go/rfc6761), a
+number of domains such as example.com and example.org are maintained
+for documentation purposes. These domains may be used as illustrative
+examples in documents without prior coordination with us. They are not
+available for registration or transfer.
+
+We provide a web service on the example domain hosts to provide basic
+information on the purpose of the domain. These web services are
+provided as best effort, but are not designed to support production
+applications. While incidental traffic for incorrectly configured
+applications is expected, please do not design applications that require
+the example domains to have operating HTTP service.
+
+## Further Reading
+
+* [IANA-managed Reserved Domains](/domains/reserved)
+
+Last revised 2017-05-13.
