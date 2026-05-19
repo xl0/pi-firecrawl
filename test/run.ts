@@ -119,13 +119,10 @@ let failed = 0
 for (const c of cases) {
 	process.stdout.write(`Running ${c.providers.length} providers for ${c.id}...\n`)
 
-	const promises = c.providers.map(provider => {
+	for (const provider of c.providers) {
 		writePerCaseConfig(provider)
-		return runCase(c, provider)
-	})
-	const results = await Promise.all(promises)
+		const r = await runCase(c, provider)
 
-	for (const r of results) {
 		if (r.status === "PASS") {
 			console.log(`  PASS  ${r.caseId} (${r.provider})`)
 			passed++
