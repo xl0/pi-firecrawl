@@ -61,8 +61,12 @@ function runPi(
 }
 
 function parseVerdict(stdout: string): { verdict: string; tail: string } {
-	const lines = stdout.split("\n").filter(l => l.trim())
-	const verdict = lines.find(l => l.startsWith("OK") || l.startsWith("FAIL")) ?? ""
+	const lines = stdout
+		.split("\n")
+		.map(l => l.trim())
+		.filter(Boolean)
+	const last = lines.at(-1) ?? ""
+	const verdict = last === "OK" || last.startsWith("FAIL:") ? last : ""
 	const tail = lines.slice(-3).join("\n")
 	return { verdict, tail }
 }
@@ -72,12 +76,12 @@ async function runCase(c: TestCase, provider: string): Promise<CaseResult> {
 	if (!existsSync(refPath)) return { caseId: c.id, provider, status: "SKIP", output: "reference file not found" }
 
 	const argsStr = Object.entries(c.args)
-		.map(([k, v]) => `${k}=${typeof v === "string" ? `'${v}'` : JSON.stringify(v)}`)
+		.map(([k, v]) => `${k}=${JSON.stringify(v)}`)
 		.join(" ")
 
 	const expected =
 		c.tool === "search" && c.args["fetchResult"] === true
-			? `The output must be a numbered result list with ${c.args["limit"] ?? 5} results, each with title and URL. If a Markdown section is present, it must contain meaningful fetched page content. It must not be an error.`
+			? `The output must be a numbered result list with ${c.args["limit"] ?? 5} results, each with title and URL. A Markdown section may be present for the first result; if present, it must contain meaningful fetched page content. Do not fail solely because Markdown is absent. It must not be an error.`
 			: c.tool === "search"
 				? `The output must be a numbered result list with ${c.args["limit"] ?? 5} results, each with title, URL, and optional description. It must not be an error.`
 				: "The output must be fetched markdown with meaningful page content. It must not be an error. Do not require the same headings, links, or article text as the reference."
@@ -134,38 +138,39 @@ const allResults: CaseResult[] = []
 let passed = 0
 let failed = 0
 
-for (const c of cases) {
-	process.stdout.write(`Running ${c.providers.length} providers for ${c.id}...\n`)
-
-	for (const provider of c.providers) {
-		writePerCaseConfig(provider)
-		const r = await runCase(c, provider)
-
-		if (r.status === "PASS") {
-			console.log(`  PASS  ${r.caseId} (${r.provider})`)
-			passed++
-		} else if (r.status === "FAIL") {
-			console.log(`  FAIL  ${r.caseId} (${r.provider}): ${r.output}`)
-			failed++
-		} else if (r.status === "ERROR") {
-			console.log(`  ERROR ${r.caseId} (${r.provider}): ${r.output}`)
-			failed++
-		} else if (r.status === "SKIP") {
-			console.log(`  SKIP  ${r.caseId} (${r.provider}): ${r.output}`)
-			failed++
-		} else {
-			console.log(`  ??    ${r.caseId} (${r.provider}):\n    ${r.output.replace(/\n/g, "\n    ")}`)
-			failed++
-		}
-		allResults.push(r)
-	}
-}
-
-// Clean up temp config
 try {
-	rmSync(configPath, { force: true })
-} catch {
-	/* ok */
+	for (const c of cases) {
+		process.stdout.write(`Running ${c.providers.length} providers for ${c.id}...\n`)
+
+		for (const provider of c.providers) {
+			writePerCaseConfig(provider)
+			const r = await runCase(c, provider)
+
+			if (r.status === "PASS") {
+				console.log(`  PASS  ${r.caseId} (${r.provider})`)
+				passed++
+			} else if (r.status === "FAIL") {
+				console.log(`  FAIL  ${r.caseId} (${r.provider}): ${r.output}`)
+				failed++
+			} else if (r.status === "ERROR") {
+				console.log(`  ERROR ${r.caseId} (${r.provider}): ${r.output}`)
+				failed++
+			} else if (r.status === "SKIP") {
+				console.log(`  SKIP  ${r.caseId} (${r.provider}): ${r.output}`)
+				failed++
+			} else {
+				console.log(`  ??    ${r.caseId} (${r.provider}):\n    ${r.output.replace(/\n/g, "\n    ")}`)
+				failed++
+			}
+			allResults.push(r)
+		}
+	}
+} finally {
+	try {
+		rmSync(configPath, { force: true })
+	} catch {
+		/* ok */
+	}
 }
 
 console.log(`\n───\nResults: ${passed} passed, ${failed} failed, ${allResults.length} total`)
