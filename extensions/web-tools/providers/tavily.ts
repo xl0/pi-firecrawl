@@ -1,3 +1,4 @@
+import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
 const BASE_URL = "https://api.tavily.com"
@@ -8,8 +9,6 @@ interface SearchBody {
 	max_results: number
 	search_depth: string
 	topic?: string
-	include_answer?: boolean
-	include_raw_content?: boolean
 }
 
 interface ExtractBody {
@@ -52,31 +51,21 @@ function sourceToTopic(source?: string): string | undefined {
 	return undefined
 }
 
-async function postJson(url: string, body: unknown, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
-	const controller = new AbortController()
-	const timer = setTimeout(() => controller.abort(), timeout)
-	signal?.addEventListener("abort", () => controller.abort(), { once: true })
-
-	try {
-		const res = await fetch(url, {
+function postJson(url: string, body: unknown, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
+	return requestJson(
+		"Tavily",
+		url,
+		{
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${apiKey}`,
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify(body),
-			signal: controller.signal
-		})
-
-		if (!res.ok) {
-			const text = await res.text()
-			throw new Error(`Tavily request failed (${res.status}): ${text}`)
-		}
-
-		return res.json()
-	} finally {
-		clearTimeout(timer)
-	}
+			body: JSON.stringify(body)
+		},
+		timeout,
+		signal
+	)
 }
 
 export const tavilyProvider: Provider = {

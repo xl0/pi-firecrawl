@@ -23,7 +23,7 @@ const providers: Record<string, Provider> = {
 	brave: braveProvider
 }
 
-const providerNames = ["firecrawl", "exa", "tavily", "brave"] as const
+const providerNames = Object.keys(providers)
 
 function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): string {
 	const direct = type === "search" ? config.webSearch?.provider : config.webFetch?.provider
@@ -43,7 +43,7 @@ function getProvider(type: "search" | "fetch", config: WebToolsConfig): Provider
 	const id = resolveProviderId(type, config)
 	const provider = providers[id]
 	if (!provider) throw new Error(`Provider "${id}" not found.`)
-	if (type === "fetch" && provider.hasFetch === false) {
+	if (type === "fetch" && !provider.fetch) {
 		throw new Error(
 			`${provider.label} does not support fetching pages. Configure a fetch-capable provider (e.g. firecrawl, exa, tavily) via /web-tools.`
 		)
@@ -340,7 +340,7 @@ export default function (pi: ExtensionAPI) {
 				} else if (action.includes("fetch provider")) {
 					const choice = await ctx.ui.select(
 						"Select fetch provider:",
-						providerNames.filter(id => providers[id]?.hasFetch !== false).map(id => providers[id]?.label ?? id)
+						providerNames.filter(id => providers[id]?.fetch).map(id => providers[id]?.label ?? id)
 					)
 					if (choice === undefined) continue
 					const providerId = providerNames.find(id => providers[id]?.label === choice)

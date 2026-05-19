@@ -100,6 +100,7 @@ async function runCase(c: TestCase, provider: string): Promise<CaseResult> {
 			"--system-prompt",
 			systemPrompt,
 			"--no-context-files",
+			"--no-session",
 			"--no-extensions",
 			"--no-skills",
 			"--no-prompt-templates",

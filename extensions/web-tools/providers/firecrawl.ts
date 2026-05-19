@@ -1,3 +1,4 @@
+import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
 const BASE_URL = "https://api.firecrawl.dev/v1"
@@ -30,31 +31,21 @@ function throwIfError(response: unknown): asserts response is FirecrawlResponse 
 	if (r.success !== true) throw new Error(r.error || "Firecrawl request failed")
 }
 
-async function fetchJson(url: string, body: unknown, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
-	const controller = new AbortController()
-	const timer = setTimeout(() => controller.abort(), timeout)
-	signal?.addEventListener("abort", () => controller.abort(), { once: true })
-
-	try {
-		const res = await fetch(url, {
+function fetchJson(url: string, body: unknown, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
+	return requestJson(
+		"Firecrawl",
+		url,
+		{
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${apiKey}`,
 				"Content-Type": "application/json"
 			},
-			body: JSON.stringify(body),
-			signal: controller.signal
-		})
-
-		if (!res.ok) {
-			const text = await res.text()
-			throw new Error(`Firecrawl request failed (${res.status}): ${text}`)
-		}
-
-		return res.json()
-	} finally {
-		clearTimeout(timer)
-	}
+			body: JSON.stringify(body)
+		},
+		timeout,
+		signal
+	)
 }
 
 export const firecrawlProvider: Provider = {

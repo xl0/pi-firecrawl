@@ -4,7 +4,7 @@
 Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa, Tavily, Brave) for Pi.
 
 ## Package
-- Published package name: `@xl0/pi-web-tools` at version `0.3.0`.
+- Published package name: `@xl0/pi-web-tools` at version `0.1.1`.
 - Pi entry: `extensions/` via `package.json#pi.extensions`.
 - Zero runtime dependencies. Pi APIs are peer dependencies.
 
@@ -13,7 +13,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/references/ref-*.txt` — shared reference snapshots, generated from Tavily (provider-agnostic). All providers compare against the same refs; LLM judges formatting/structure, not content.
 `test/.env` — API keys for providers (gitignored), loaded by test scripts without overriding existing environment variables.
 `test/env.ts` — tiny `.env` loader shared by test scripts.
-`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)`. Per-provider config written to `.pi/xl0-web-tools.json` and removed in a `finally` block. LLM compares output structure to reference with per-case expectations; final line must be exact `OK` or `FAIL: ...`. Summary at end, exits non-zero on failures.
+`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)` with `--no-session`. Per-provider config written to `.pi/xl0-web-tools.json` and removed in a `finally` block. LLM compares output structure to reference with per-case expectations; final line must be exact `OK` or `FAIL: ...`. Summary at end, exits non-zero on failures.
 `test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`/environment, saves tool text as reference, exits non-zero on failures.
 
 ## Extension
@@ -25,9 +25,11 @@ Exports `searchImpl` and `fetchImpl` standalone functions for testing — they t
 - `/web-tools`: interactive command to configure providers and API keys.
 
 ## Provider dispatch
-Search and fetch providers configurable independently in `xl0-web-tools.json` (`~/.pi/agent/` global, `.pi/` project, project overrides). If only `webSearch.provider` is set, `webFetch` falls back to it.
+Search and fetch providers configurable independently in `xl0-web-tools.json` (`~/.pi/agent/` global, `.pi/` project, project overrides). If only `webSearch.provider` is set, `webFetch` falls back to it when the provider implements fetch.
 
 API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDER_ENV_KEY]` → error.
+
+`providers/http.ts` contains shared JSON request handling for fetch timeouts, abort propagation, non-2xx errors, and JSON parsing.
 
 ## Providers
 
@@ -53,7 +55,7 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 - Auth: `Authorization: Bearer <key>`. Env key: `TAVILY_API_KEY`.
 
 ### Brave Search (`providers/brave.ts`)
-- Search-only provider (`hasFetch: false`). `webFetch` fallback will not resolve to Brave.
+- Search-only provider (no `fetch` implementation). `webFetch` fallback will not resolve to Brave.
 - Search: GET `/web/search`, `/news/search`, or `/images/search` with query params `q`, `count`. Source determines endpoint.
 - Web response: `{web:{results:[{title, url, description}]}}`. News response: `{results:[...]}`. Image response: `{results:[{url, title?, description?}]}`.
 - `description` strips HTML tags (`<strong>` etc) from Brave snippets.
@@ -63,9 +65,12 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 ## Shared types (`providers/types.ts`)
 ```ts
 SearchResult { title, url, description?, markdown? }
-Provider { id, label, envApiKey, hasFetch?, search(), fetch?() }
+Provider { id, label, envApiKey, search(), fetch?() }
 WebToolsConfig { webSearch?, webFetch?, webApiKeys? }
 ```
+
+## Shared HTTP (`providers/http.ts`)
+`requestJson()` wraps provider HTTP requests with timeout, abort propagation, non-2xx error text, and JSON parsing.
 
 ## Formatting (`format.ts`)
 Provider-agnostic: `formatSearchOutput(results: SearchResult[])` truncates non-fetched result descriptions at 300 chars; `stringify()`, `asErrorMessage()`.

@@ -1,9 +1,14 @@
 {
 	"name": "@xl0/pi-web-tools",
-	"version": "0.3.0",
+	"version": "0.1.1",
 	"keywords": [
 		"pi-package",
-		"web-tools"
+		"firecrawl",
+		"exa",
+		"tavily",
+		"brave search",
+		"web search",
+		"web fetch"
 	],
 	"type": "module",
 	"license": "MIT",
