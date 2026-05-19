@@ -1,0 +1,400 @@
+1. Quantum Computing Explained | NIST
+   https://www.nist.gov/quantum-information-science/quantum-computing-explained
+
+   Markdown:
+# Quantum Computing Explained | NIST
+[Skip to main content](https://www.nist.gov/quantum-information-science/quantum-computing-explained#main-content)
+
+![Image 1: U.S. flag](https://www.nist.gov/libraries/nist-component-library/dist/img/us_flag_small.png)
+
+An official website of the United States government
+
+Here’s how you know
+
+Here’s how you know
+
+![Image 2](https://www.nist.gov/libraries/nist-component-library/dist/img/icon-dot-gov.svg)
+
+**Official websites use .gov**
+
+ A **.gov** website belongs to an official government organization in the United States.
+
+![Image 3](https://www.nist.gov/libraries/nist-component-library/dist/img/icon-https.svg)
+
+**Secure .gov websites use HTTPS**
+
+ A **lock** (  ) or **https://** means you’ve safely connected to the .gov website. Share sensitive information only on official, secure websites.
+
+https://www.nist.gov/quantum-information-science/quantum-computing-explained
+
+![Image 4: National Institute of Standards and Technology](https://www.nist.gov/libraries/nist-component-library/dist/img/logo/nist_logo_sidestack.svg)
+
+[![Image 5: National Institute of Standards and Technology](https://www.nist.gov/libraries/nist-component-library/dist/img/logo/logo.svg)](https://www.nist.gov/ "National Institute of Standards and Technology")
+
+Search NIST ![Image 6: Search](https://www.nist.gov/libraries/nist-component-library/dist/img/usa-icons-bg/search--white.svg)
+
+Menu
+
+Close
+*   [Publications](https://www.nist.gov/publications)
+*   What We Do
+
+    *   [All Topics](https://www.nist.gov/topics)
+    *   [Advanced communications](https://www.nist.gov/advanced-communications)
+    *   [Artificial intelligence](https://www.nist.gov/artificial-intelligence)
+    *   [Bioscience](https://www.nist.gov/bioscience)
+    *   [Buildings and construction](https://www.nist.gov/buildings-construction)
+    *   [Chemistry](https://www.nist.gov/chemistry)
+    *   [Cybersecurity and Privacy](https://www.nist.gov/cybersecurity-and-privacy)
+    *   [Electronics](https://www.nist.gov/electronics)
+    *   [Energy](https://www.nist.gov/energy)
+
+    *   [Environment](https://www.nist.gov/environment)
+    *   [Fire](https://www.nist.gov/fire)
+    *   [Forensic science](https://www.nist.gov/forensic-science)
+    *   [Health](https://www.nist.gov/health)
+    *   [Information technology](https://www.nist.gov/information-technology)
+    *   [Infrastructure](https://www.nist.gov/infrastructure)
+    *   [Manufacturing](https://www.nist.gov/manufacturing)
+    *   [Materials](https://www.nist.gov/materials)
+    *   [Mathematics and statistics](https://www.nist.gov/mathematics-statistics)
+
+    *   [Metrology](https://www.nist.gov/metrology)
+    *   [Nanotechnology](https://www.nist.gov/nanotechnology)
+    *   [Neutron research](https://www.nist.gov/neutron-research)
+    *   [Performance excellence](https://www.nist.gov/performance-excellence)
+    *   [Physics](https://www.nist.gov/physics)
+    *   [Public safety](https://www.nist.gov/public-safety)
+    *   [Quantum information science](https://www.nist.gov/quantum-information-science)
+    *   [Resilience](https://www.nist.gov/resilience)
+    *   [Standards](https://www.nist.gov/standards)
+    *   [Transportation](https://www.nist.gov/transportation)
+
+*   Labs & Major Programs
+
+    *   [Assoc Director of Laboratory Programs](https://www.nist.gov/adlp)
+    *   [Laboratories](https://www.nist.gov/laboratories)
+        *   [Communications Technology Laboratory](https://www.nist.gov/ctl)
+        *   [Engineering Laboratory](https://www.nist.gov/el)
+        *   [Information Technology Laboratory](https://www.nist.gov/itl)
+        *   [Material Measurement Laboratory](https://www.nist.gov/mml)
+        *   [Physical Measurement Laboratory](https://www.nist.gov/pml)
+
+    *   [User Facilities](https://www.nist.gov/user-facilities)
+        *   [NIST Center for Neutron Research](https://www.nist.gov/ncnr)
+        *   [CNST NanoFab](https://www.nist.gov/cnst)
+
+    *   [Research Test Beds](https://www.nist.gov/research-test-beds)
+    *   [Research Projects](https://www.nist.gov/laboratories/projects-programs)
+    *   [Tools & Instruments](https://www.nist.gov/laboratories/tools-instruments)
+
+    *   [Major Programs](https://www.nist.gov/major-programs)
+        *   [Baldrige Performance Excellence Program](https://www.nist.gov/baldrige)
+        *   [CHIPS for America Initiative](https://www.nist.gov/chips)
+        *   [Manufacturing Extension Partnership (MEP)](https://www.nist.gov/mep)
+        *   [Office of Advanced Manufacturing](https://www.nist.gov/oam)
+        *   [Special Programs Office](https://www.nist.gov/spo)
+        *   [Technology Partnerships Office](https://www.nist.gov/tpo)
+
+*   Services & Resources
+
+    *   [Measurements and Standards](https://www.nist.gov/standards-measurements)
+        *   [Calibration Services](https://www.nist.gov/calibrations)
+        *   [Laboratory Accreditation (NVLAP)](https://www.nist.gov/nvlap)
+        *   [Quality System](https://www.nist.gov/nist-quality-system)
+        *   [Standard Reference Materials (SRMs)](https://www.nist.gov/srm)
+        *   [Standard Reference Instruments (SRIs)](https://www.nist.gov/sri)
+        *   [Standards.gov](https://www.nist.gov/standardsgov)
+        *   [Time Services](https://www.nist.gov/pml/time-and-frequency-division/time-services)
+        *   [Office of Weights and Measures](https://www.nist.gov/pml/owm)
+
+    *   [Software](https://www.nist.gov/services-resources/software)
+    *   [Data](https://www.nist.gov/data)
+        *   [Chemistry WebBook](https://webbook.nist.gov/chemistry/)
+        *   [National Vulnerability Database](https://nvd.nist.gov/)
+        *   [Physical Reference Data](https://www.nist.gov/pml/productsservices/physical-reference-data)
+        *   [Standard Reference Data (SRD)](https://www.nist.gov/srd)
+
+    *   [Storefront](https://shop.nist.gov/)
+    *   [License & Patents](https://www.nist.gov/tpo)
+
+    *   [Computer Security Resource Center (CSRC)](https://csrc.nist.gov/)
+    *   [NIST Research Library](https://www.nist.gov/nist-research-library)
+
+*   News & Events
+
+    *   [News](https://www.nist.gov/news-events/news)
+    *   [Events](https://www.nist.gov/news-events/events)
+    *   [Blogs](https://www.nist.gov/blogs)
+    *   [NIST In Focus](https://www.nist.gov/nist-focus)
+    *   [Feature Stories](https://www.nist.gov/feature-stories)
+
+    *   [Awards](https://www.nist.gov/awards)
+    *   [Video Gallery](https://www.nist.gov/video-gallery)
+    *   [Image Gallery](https://www.nist.gov/image-gallery)
+    *   [Media Contacts](https://www.nist.gov/pao/media-contacts)
+
+*   About NIST
+
+    *   [About Us](https://www.nist.gov/about-nist)
+        *   [Leadership](https://www.nist.gov/director/leadership)
+        *   [Organization Structure](https://www.nist.gov/director/nist-organization-structure)
+        *   [Budget & Planning](https://www.nist.gov/about-nist/budget-planning)
+
+    *   [Contact Us](https://www.nist.gov/contact)
+    *   [Visit](https://www.nist.gov/about-nist/visit)
+    *   [Careers](https://www.nist.gov/careers)
+        *   [Student programs](https://www.nist.gov/iaao/academic-affairs-office)
+
+    *   [Work with NIST](https://www.nist.gov/about-nist/work-nist)
+    *   [History](https://www.nist.gov/history)
+        *   [NIST Digital Archives](http://nistdigitalarchives.contentdm.oclc.org/)
+        *   [NIST Museum](https://www.nist.gov/nist-museum)
+        *   [NIST and the Nobel](https://www.nist.gov/nist-and-nobel)
+
+    *   [Educational Resources](https://www.nist.gov/education)
+
+[](https://www.nist.gov/quantum-information-science/quantum-computing-explained)
+
+[Physics](https://www.nist.gov/physics)
+
+## [Quantum information science](https://www.nist.gov/quantum-information-science)
+
+*   Joint institutes Expand or Collapse
+    *   [JILA](https://jila.colorado.edu/)
+    *   [Joint Quantum Institute](http://jqi.umd.edu/)
+    *   [Joint Center for Quantum Information and Computer Science](http://quics.umd.edu/)
+
+*   [Quantum networks at NIST](https://www.nist.gov/pml/productsservices/quantum-networks-nist)
+*   [Quantum sensing explained](https://www.nist.gov/quantum-information-science/quantum-sensing-explained)Expand or Collapse
+    *   [Atomic Clocks: Exquisite Sensors for More Than Just Time](https://www.nist.gov/quantum-information-science/atomic-clocks-exquisite-sensors-more-just-time)
+    *   [Sensors for a Magnetic World](https://www.nist.gov/quantum-information-science/sensors-magnetic-world)
+    *   [Seeing Bits of Light](https://www.nist.gov/quantum-information-science/seeing-bits-light)
+    *   [Turning Atoms Into Waves to Measure Gravity and Acceleration](https://www.nist.gov/quantum-information-science/turning-atoms-waves-measure-gravity-and-acceleration)
+    *   [Giant Atoms for Measuring Radiation](https://www.nist.gov/quantum-information-science/giant-atoms-measuring-radiation)
+    *   [Squeezed Light for Detecting Gravitational Waves](https://www.nist.gov/quantum-information-science/squeezed-light-detecting-gravitational-waves)
+
+*   [Quantum computing explained](https://www.nist.gov/quantum-information-science/quantum-computing-explained)
+*   [NIST on a Chip](https://www.nist.gov/noac)
+*   [National Quantum Initiative](https://www.quantum.gov/)
+
+# Quantum Computing Explained
+
+## Share[![Image 7: permalink](https://www.nist.gov/libraries/nist-component-library/dist/img/link.svg)](https://www.nist.gov/quantum-information-science/quantum-computing-explained#share "Permalink to this item")
+
+[Facebook](https://www.facebook.com/share.php?u=https://www.nist.gov/quantum-information-science/quantum-computing-explained "Facebook")
+
+[Linkedin](https://www.linkedin.com/shareArticle?mini=true&url=https://www.nist.gov/quantum-information-science/quantum-computing-explained&source=https://www.nist.gov/quantum-information-science/quantum-computing-explained "Linkedin")
+
+[X.com](https://x.com/intent/tweet?url=https://www.nist.gov/quantum-information-science/quantum-computing-explained&status=https://www.nist.gov/quantum-information-science/quantum-computing-explained "X.com")
+
+[Email](mailto:?subject=NIST.gov&body=Check%20out%20this%20site%20https://www.nist.gov/quantum-information-science/quantum-computing-explained "Email")
+
+[![Image 8: Three qubits appear in an artist’s conception as X-shaped icons that fit together.](https://www.nist.gov/sites/default/files/images/2025/03/18/Quantum%20fridge%20cropped.png)](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2025/03/18/Quantum%20fridge%20cropped.png?itok=uw1M5s0D)
+
+Credit: Chalmers University of Technology/Boid AB/NIST 
+
+[Image info](https://www.nist.gov/media/735176)
+
+A computer that could break the encryption that safeguards your private information on the internet. A machine that can design powerful new drugs by precisely simulating the behavior of individual molecules. A device that optimizes complex supply chains to help companies get the parts they need and assemble them in the most efficient way possible.
+
+These are all examples of how an emerging technology — the quantum computer — could change our world.
+
+These computers work by harnessing quantum physics — the strange, often counterintuitive laws that govern the universe at its smallest scales and coldest temperatures. Today’s quantum computers are rudimentary and error-prone. But if more advanced and robust versions can be made, they have the potential to rapidly crunch through certain problems that would take current computers years. That’s why governments, companies and research labs around the world are working feverishly toward this goal.
+
+Quantum computers will not replace our familiar “classical” computers. Rather, the two types of machines could work together to solve problems that stymie classical computers, potentially supercharging scientific research in fields such as materials and drug discovery, giving a boost to industry and upending cybersecurity as we know it.
+
+Let’s explore how quantum computers work.
+
+## What is quantum, anyway?[![Image 9: permalink](https://www.nist.gov/libraries/nist-component-library/dist/img/link.svg)](https://www.nist.gov/quantum-information-science/quantum-computing-explained#what-is-quantum-anyway "Permalink to this item")
+
+Quantum physics describes the universe at its smallest and most fundamental scales — think atoms and molecules; light and energy. Things at these scales behave very differently from everyday objects we’re familiar with.
+
+One of the most important differences involves a concept called **superposition**. Let’s start by considering an everyday, human-scale object such as a person on a ladder. Depending on which rung the person stands on, they have a certain amount of potential energy. (This potential energy determines how fast the person would be moving when they hit the ground if they were to jump off the ladder.) A person on the ground has the smallest possible amount of energy in this system. Someone on the first rung has slightly more energy, and so on up to the highest rung.
+
+By contrast, tiny objects such as atoms can act as though they have two or more distinct amounts of energy at once. In our ladder example, this would be akin to simultaneously standing on the ladder’s lowest and highest rungs— something that makes no sense for a person.
+
+Once placed into this kind of mixed energy state, known as a “quantum superposition,” an atom will remain there until it is measured or disturbed by the outside world. Then the atom “collapses” to a single energy state — following our analogy, to either the low or high rung of the ladder.
+
+[![Image 10: Superposition: A circle is split, with halves marked 0 and 1. When a ruler appears, the entire circle becomes 1. ](https://www.nist.gov/sites/default/files/images/2025/03/18/Quantum-Superposition_Final-sm.gif)](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2025/03/18/Quantum-Superposition_Final-sm.gif?itok=vL2A_UUJ)
+
+[Download](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2025/03/18/Quantum-Superposition_Final-sm.gif?itok=vL2A_UUJ) | [Image info](https://www.nist.gov/media/735131)
+
+A particle starts out in a quantum superposition of energy state 0 and energy state 1. When the particle is measured (represented by a ruler), it must instantaneously and randomly “collapse” to be either fully in state 0 or state 1.
+
+Credit: N. Hanacek/NIST 
+
+To cast this idea into familiar terms, the famous physicist Erwin Schrödinger came up with a memorable, though absurd, thought experiment: Imagine a perfectly sealed box containing a cat and a poison trap that can be triggered by the decay of a radioactive atom. Because the decay of the atom is uncertain, at any given time, the cat is in a superposition of dead and alive. Only when someone opens the box and measures the cat does its state “collapse” to being either definitively alive or definitively dead. Real cats can’t be both alive and dead, of course, but Schrödinger’s imaginary cat has become an enduring metaphor to help people grapple with the strangeness of superposition.
+
+Building on the superposition concept, multiple atoms or other quantum objects can be **entangled** with each other to share a single quantum state. Now imagine several cats in Schrödinger’s box, potential victims of the same trap. These cats are “entangled” in a superposition of all being alive or all being dead. When someone opens the box, not just the state of one cat but those of all the cats immediately collapse, and each cat is found to be fully alive or fully dead.
+
+“Entanglement means you’ve got at least two things that are always connected; they have no independent existence,” explains NIST physicist Andrew Wilson.
+
+[![Image 11: Entanglement: Two circles connected with a wavy line are each split, with halves marked 0 and 1. When a ruler appears, one circle becomes entirely 0 and the other is entirely 1.](https://www.nist.gov/sites/default/files/images/2025/03/18/Quantum-Entanglement-Final-sm.gif)](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2025/03/18/Quantum-Entanglement-Final-sm.gif?itok=dEr5dKgA)
+
+[Download](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2025/03/18/Quantum-Entanglement-Final-sm.gif?itok=dEr5dKgA) | [Image info](https://www.nist.gov/media/735136)
+
+A pair of particles start out each in a quantum superposition of energy state 0 and energy state 1. Because the particles are also entangled with each other, when one is measured (represented by a ruler), both must randomly “collapse” such that one is fully in state 0 and the other is fully in state 1. The collapse is instantaneous for both particles, no matter how far apart they are.
+
+Credit: N. Hanacek/NIST 
+
+These scenarios strike us as absurd when applied to familiar objects such as cats. But at the atomic level, this is how the world works. Tiny objects such as atoms can exist in multiple states simultaneously. And these states can be entangled with those of other objects even when the objects are far apart. “Let’s say you have an entangled pair of particles and you put one on the Moon and the other on the surface of the Earth. If you then do something to the one on the Earth,you simultaneously affect the other,” Wilson says. “It’s kind of romantic!”
+
+We’ll soon explore how physicists use these ideas to build quantum computers. But first we need to understand ...
+
+## What is a computer?[![Image 12: permalink](https://www.nist.gov/libraries/nist-component-library/dist/img/link.svg)](https://www.nist.gov/quantum-information-science/quantum-computing-explained#what-is-a-computer "Permalink to this item")
+
+These days, we use computers for just about everything: gaming and streaming, banking and shopping, following our favorite sports teams and chatting with friends and family members. But we rarely think about what a computer is or how it works.
+
+At its most fundamental level, a computer is any device that takes in data, processes it, stores it and spits it out. The phones in our pockets, the servers in data centers, the microprocessors in our cars and the room-sized supercomputers at national labs: All of these digital computers encode and process information using “bits.” Bits are “binary digits” that encode information — text, graphics and so on — as 1s and 0s. For example, computers typically represent the letter “A” using the bit string “01000001.”
+
+But bits, like the computers they are part of, are not just mathematical concepts. They need to be realized in physical objects such as tiny bar magnets or electric switches that can be placed into one of two distinct states, say pointed up or pointed down.
+
+Bits are very good at what they do. Put a bit into a “0” or “1” state and it will usually stay there for a long time, meaning the information it encodes is stable and long-lasting. But bits are also limited.
+
+Quantum computers also have input, output, information processing and memory. But instead of regular classical bits, quantum computers use quantum bits, or **qubits**. Like Schrödinger’s unfortunate cat, qubits can be put into superpositions of multiple states. In other words, a qubit can be in state 0, state 1, or a mix of the two. And the quantum states of individual qubits can be entangled with each other.
+
+These capabilities give quantum computers their superpower. Whereas two classical bits contain just two pieces of information (0 and 1, for example, or 1 and 0), two qubits can contain a superposition of four combinations of 0s and 1s simultaneously. Three qubits can contain eight combinations; four qubits, 16 combinations and so on. Each additional qubit doubles the number of combinations: an exponential increase.
+
+Someone using a quantum computer must first entangle qubits to harness their exponential computing power. The operator then carries out operations on the qubits, such as addition, multiplication or more complicated computations. Depending on the type of quantum computer, electromagnetic signals or lasers create the entanglement and operations.
+
+Though they are capable of exponential computation, quantum computers are limited in the amount of data they can extract from these computations — a fact that’s often lost in popular descriptions giving the impression that quantum computers try every solution to a problem at once.
+
+“Different computations can indeed be done in superposition, achieving a kind of parallel computing,” says Stephen Jordan, a Google quantum computing researcher who was a longtime NIST staff member and[Joint Center for Quantum Information and Computer Science fellow](https://quics.umd.edu/people/stephen-jordan). “But contrary to popular belief, this doesn’t allow quantum computers to do an efficient ‘brute force’ search over all the potential solutions.
+
+“The measurement at the end of the computation can only extract a small amount of information about the results of all of these computations,” Jordan explains. “The key is to design the measurement so that it extracts useful information about the whole set of results done in superposition.”
+
+(Note: This article describes quantum computers that do computations using logic gates, similar to classical computers. Some scientists and companies are pursuing another technology known as “quantum annealing” that could be used to solve certain physics and optimization problems faster than classical computers can.)
+
+## What could quantum computers do?[![Image 13: permalink](https://www.nist.gov/libraries/nist-component-library/dist/img/link.svg)](https://www.nist.gov/quantum-information-science/quantum-computing-explained#what-could-quantum-computers-do "Permalink to this item")
+
+At a 1981 gathering of physicists outside Boston, the famous physicist Richard Feynman spoke about the possibility of “[simulating physics with computers](https://s2.smu.edu/~mitch/class/5395/papers/feynman-quantum-1981.pdf).” Though other scientists had independently developed similar ideas around the same time, Feynman’s talk is often credited with launching the field of quantum computing.
+
+Since then, scientists have explored how quantum computers could, in theory, simulate the fundamental quantum rules that govern molecules, chemicals and materials — something today’s computers can only approximate with great effort. If quantum computers eventually become large and powerful enough, scientists hope that such quantum simulations could bring about major advances in materials science, drug development and other areas. Potentially transformative “killer apps” for quantum simulation could involve discovering a new blockbuster drug or chemical catalysts that make the production of fertilizer or the capture of greenhouse gases from the air more efficient.
+
+In 1994, a mathematician named Peter Shor[published a paper](https://ieeexplore.ieee.org/document/365700) about a very different application that instantly made quantum computing a national security issue. The algorithms that encrypt much of our data work by multiplying very large prime numbers together to create a secret key — something that’s very hard for classical computers to undo. Shor’s paper described a quantum algorithm that could quickly factor the immense numbers that are products of these huge prime numbers, potentially putting much of the world’s encrypted information at risk.
+
+Scientists also believe quantum computers could outpace classical computers at solving complicated optimization problems such as helping companies organize complex processes such as airplane assembly in more efficient ways.
+
+Most of these applications are years — perhaps even decades — in the future. But scientists have started to publish papers claiming that quantum computers have demonstrated a “quantum advantage,” meaning they can outdo classical computers for certain tasks. Quantum computers have been used to calculate the energies of small molecules, for example, and simulate the magnetic properties of collections of interacting atoms.
+
+So far, none of these early demonstrations have proved truly useful, says Scott Glancy, a physicist at NIST. And in some cases, scientists later showed that traditional computers could equal or exceed the performance of quantum processors for some tasks. The demonstrations do, however, prove that quantum computers work and can be scaled up.
+
+“It seems to me we’re just on the threshold of quantum systems doing genuinely new simulations that we can’t do classically,” says Glancy.
+
+Beyond these practical applications, quantum computers could offer a new way to probe the fundamental nature of reality. A full-scale quantum computer, if successfully built, would contain some of the most complex quantum states ever created (assuming aliens have not already built such devices). Those states would provide an important, albeit not surprising, confirmation of quantum theory.
+
+If, on the other hand, scientists find that a large-scale quantum computer cannot be built, that would be “shocking,” says Glancy. “It might inspire a revolution in physics. In my opinion that is a good reason to build a quantum computer.”
+
+## Why don’t we have quantum computers today?[![Image 14: permalink](https://www.nist.gov/libraries/nist-component-library/dist/img/link.svg)](https://www.nist.gov/quantum-information-science/quantum-computing-explained#why-don%E2%80%99t-we-have-quantum-computers-today "Permalink to this item")
+
+Qubits are exquisite but fragile. A stray electric or magnetic field, temperature fluctuations or even a cosmic ray can ruin a superposition or entanglement. This forces qubits into a 0 or 1 state in which they act like ordinary bits. Anyone building a quantum computer must find ways to manipulate the qubits carefully while protecting them from outside disturbances.
+
+Moreover, a single qubit by itself is worth little. For a quantum device to do something useful, many qubits must be entangled with each other while sustaining superpositions. The best quantum computers today contain hundreds of interconnected qubits and make an error roughly once in every thousand operations. An error changes the state of a qubit, destroying or corrupting the information it carries.
+
+(By contrast, a classical computer makes around one error, such as a bit randomly flipping from 0 to 1, for every quintillion — 1 followed up 18 zeroes — calculations. And correcting errors in a classical computer is much easier.)
+
+Industry, university and government researchers around the world are racing to make more reliable qubits and build electronics and laser systems that create entanglement more efficiently and robustly. And they are experimenting with many kinds of qubits. In theory, any particle or system that obeys the rules of quantum physics, from atoms to tiny circuits to semiconductors, can act as a qubit.
+
+Each qubit has advantages and disadvantages. For example, one of the most popular qubit types uses[electrically charged atoms known as ions](https://www.nist.gov/programs-projects/quantum-computing-trapped-ions "Quantum Computing with Trapped Ions"). The quantum energy states of electrons inside these ions represent the 0s and 1s (and combinations thereof) for quantum computation. Ion qubits can sustain quantum superpositions for a long time, but they are relatively sluggish at performing computations.
+
+[![Image 15: Square device surrounded by a design of gold wiring.](https://www.nist.gov/sites/default/files/styles/960_x_960_limit/public/images/2018/03/26/15pml031_ion-trap_composite_hr_bottom_only.jpg?itok=U0-O1uMp)](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2018/03/26/15pml031_ion-trap_composite_hr_bottom_only.jpg?itok=TvXhTtPJ)
+
+[Download](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2018/03/26/15pml031_ion-trap_composite_hr_bottom_only.jpg?itok=TvXhTtPJ) | [Image info](https://www.nist.gov/media/445896)
+
+A gold-on-alumina ion trap inside a case that protects ions from electrical interference.
+
+Credit: Blakestad/NIST 
+
+Another popular qubit uses[tiny circuits made from superconductors](https://www.nist.gov/news-events/news/2023/06/nist-toggle-switch-can-help-quantum-computers-cut-through-noise "NIST ‘Toggle Switch’ Can Help Quantum Computers Cut Through the Noise") — materials that conduct electricity without resistance at very cold temperatures. The behavior of the electrons in the circuits creates quantized energy states that can be used to encode 0s and 1s. These qubits allow for fast computations and can be made using existing chip manufacturing techniques. But their quantum states are more fragile and shorter-lived than those of ion qubits.
+
+[![Image 16: Colorized micrograph of superconducting circuit ](https://www.nist.gov/sites/default/files/styles/960_x_960_limit/public/images/2017/01/31/physics_quantum_computing_dimmer_switch.jpg?itok=l1bTNtGs)](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2017/01/31/physics_quantum_computing_dimmer_switch.jpg?itok=yADwjuMU)
+
+[Download](https://www.nist.gov/sites/default/files/styles/2800_x_2800_limit/public/images/2017/01/31/physics_quantum_computing_dimmer_switch.jpg?itok=yADwjuMU) | [Image info](https://www.nist.gov/media/292536)
+
+A chip combining a superconducting qubit (pink) for storing quantum information, a quantum bus (green) for transporting information, and a switch (purple) that tunes interactions between the other two components.
+
+Credit: M.S. Allman/NIST 
+
+Scientists are also experimenting with qubits based on[arrays of neutral (non-electrically charged) atoms](https://jila.colorado.edu/kaufman/research/quantum-simulation-and-information-ytterbium-tweezer-arrays),[atoms embedded in diamonds](https://www.nature.com/articles/s41586-022-04819-6),[particles of light known as photons](https://www.nature.com/articles/d41586-024-03827-y) and[small bits of silicon](https://www.nist.gov/blogs/taking-measure/seeking-power-quantum-computing-silicon "Seeking the Power of Quantum Computing in Silicon").
+
+Some researchers are also trying to develop a radically different type of qubit, known as a “topological” qubit, that would have some built-in immunity to errors. In theory, topological qubits could encode quantum information into the braiding pattern of “quasiparticles” that emerge from the collective behavior of individual particles such as electrons. These braiding patterns, and thus the quantum states, would be protected from some of the outside disturbances that can disrupt other qubits.
+
+Topological qubits require temperatures near absolute zero and complicated structures often involving superconducting and semiconducting materials. They have proved challenging to build, and researchers are still seeking definitive evidence that they have managed to make one.
+
+Ultimately, quantum computers may marry multiple kinds of qubits so that each can play to its strengths. Superconducting or photonic qubits could crunch through operations quickly, for example, then transfer their information to ion or diamond qubits for storage.
+
+### [](https://www.nist.gov/quantum-information-science/quantum-computing-explained)Qubit Contenders[![Image 17: permalink](https://www.nist.gov/libraries/nist-component-library/dist/img/link.svg)](https://www.nist.gov/quantum-information-science/quantum-computing-explained#qubit-contenders "Permalink to this item")
+
+| Qubit type | Image | Description |
+| --- | --- | --- |
+| Trapped ion | ![Image 18: Four circles with plus signs inside a lined up horizontally between two vertical lines.](https://www.nist.gov/sites/default/files/styles/480_x_480_limit/public/images/2025/03/18/Qubits-01.png?itok=bMIxfZ45) | Electrically charged atoms are trapped using electric and/or magnetic fields so that they hover inside a vacuum chamber. Their quantum states can be controlled and measured with laser light and electromagnetic fields. |
+| Neutral atom | ![Image 19: Lines of red dots are arranged in a diamond shape.](https://www.nist.gov/sites/default/files/styles/480_x_480_limit/public/images/2025/03/18/Qubits-03.png?itok=R0Cx1YRE) | Neutral (uncharged) atoms are trapped using laser light so that they hover inside a vacuum chamber. Their quantum states can be controlled and measured with laser light and electromagnetic fields. |
+| Superconducting | ![Image 20: An outline of a chip shape has one wire going off to the left.](https://www.nist.gov/sites/default/files/styles/480_x_480_limit/public/images/2025/03/18/Qubits-02.png?itok=PGgVAHH4) | Tiny integrated circuits on a chip are cooled to near absolute zero temperature. At these temperatures, the behavior of the electrons in the circuits creates quantized energy states that can be observed and manipulated using weak electromagnetic signals. |
+| Semiconducting | ![Image 21: Circle is shaded left to right from red to blue.](https://www.nist.gov/sites/default/files/styles/480_x_480_limit/public/images/2025/03/18/Qubits-04.png?itok=o078jz4E) | Electrodes are used to trap electrons inside a tiny region of a semiconductor material (such as silicon) that is cooled to near absolute zero. The electron’s quantum state can be controlled and measured with electromagnetic fields. |
+| Photonic | ![Image 22: A wavy horizontal line has an arrow at the end.](https://www.nist.gov/sites/default/files/styles/480_x_480_limit/public/images/2025/03/18/Qubits-06.png?itok=dV8DAr4U) | Individual particles of light (photons) can encode quantum information in their polarization, wavelength, time of arrival, or even the number of photons. Devices such as beamsplitters and single-photon detectors are used to control and measure the encoded quantum states. |
+| Topological | ![Image 23: Two vertical lines weave over one another. ](https://www.nist.gov/sites/default/files/styles/480_x_480_limit/public/images/2025/03/18/Qubits-05.png?itok=eHQvw7lz) | This hypothetical type of qubit, which has not yet been created in the lab, would encode quantum information by braiding “quasiparticles” that emerge from the collective behavior of individual particles such as electrons. The quantum states would be encoded in how the braid is twisted, helping to protect them from outside disturbances. The states would be controlled and measured using magnetic and electric fields. |
+
+_An overview of some of the most-studied and best-funded qubit types._
+
+_Image credits: N. Hanacek/NIST_
+
+## Where are we headed?[![Image 24: permalink](https://www.nist.gov/libraries/nist-component-library/dist/img/link.svg)](https://www.nist.gov/quantum-information-science/quantum-computing-explained#where-are-we-headed "Permalink to this item")
+
+In the near term, quantum computer designers hope to build machines that are sophisticated and stable enough to do useful tasks that traditional computers can’t do. Some researchers expect these “noisy intermediate-scale” quantum computers to excel at simulation; others are skeptical. Current quantum computers are being used mainly to explore certain physics, chemistry and mathematical problems and as test beds to understand how to make more powerful quantum computers.
+
+For other tasks, such as running Shor’s code-breaking algorithm, a quantum computer may need millions of qubits that can run error-free indefinitely, like our classical computers do. Such a quantum computer is probably still much further away.
+
+(Even so,[NIST has developed new algorithms](https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards "NIST Releases First 3 Finalized Post-Quantum Encryption Standards ") that are thought to be quantum computer-proof and is encouraging businesses and government agencies to adopt them.[Learn more about post-quantum cryptography](https://www.nist.gov/cybersecurity-and-privacy/what-post-quantum-cryptography "What Is Post-Quantum Cryptography?  ").)
+
+Many experts believe that because they are so complex and delicate, quantum computers will probably never sit on or desks or in our pockets. Rather, they may live inside commercial computing centers, national labs and universities, where they will crunch quantum information and deliver solutions that make our world smarter, safer and more efficient.
+
+-- _Written by Gabriel Popkin_
+
+[Physics](https://www.nist.gov/topic-terms/physics) and [Quantum information science](https://www.nist.gov/topic-terms/quantum-information-science)
+
+ Created March 18, 2025, Updated March 30, 2026 
+
+[Was this page helpful?](https://www.nist.gov/webform/page_feedback?page=https://www.nist.gov/quantum-information-science/quantum-computing-explained&page_title=Quantum%20Computing%20Explained&source_entity_type=node&source_entity_id=1877841)
+
+[![Image 25: National Institute of Standards and Technology logo](https://www.nist.gov/libraries/nist-component-library/dist/img/logo/NIST-Logo-Brand-White.svg)](https://www.nist.gov/ "National Institute of Standards and Technology")
+
+### HEADQUARTERS
+
+ 100 Bureau Drive
+
+ Gaithersburg, MD 20899
+
+[301-975-2000](tel:301-975-2000)
+[Webmaster](mailto:do-webmaster@nist.gov) | [Contact Us](https://www.nist.gov/contact) | [Our Other Offices](https://www.nist.gov/visit)
+
+[X.com](https://x.com/NIST)[Facebook](https://www.facebook.com/NIST)[LinkedIn](https://www.linkedin.com/company/nist)[Instagram](https://www.instagram.com/nist/)[YouTube](https://www.youtube.com/NIST)[Giphy](https://giphy.com/nist)[RSS Feed](https://www.nist.gov/news-events/nist-rss-feeds)[Mailing List](https://public.govdelivery.com/accounts/USNIST/subscriber/new)
+
+How are we doing? [Feedback](https://www.nist.gov/webform/nist_gov_feedback?page=/quantum-information-science/quantum-computing-explained "Provide feedback")
+
+*   [Site Privacy](https://www.nist.gov/privacy-policy)
+*   [Accessibility](https://www.nist.gov/oism/accessibility)
+*   [Privacy Program](https://www.nist.gov/privacy)
+*   [Copyright & Disclaimers](https://www.nist.gov/copyrights-disclaimers)
+*   [Vulnerability Disclosure](https://www.commerce.gov/vulnerability-disclosure-policy)
+*   [No Fear Act Policy](https://www.nist.gov/no-fear-act-policy)
+*   [FOIA](https://www.nist.gov/office-director/freedom-information-act)
+*   [Environmental Policy](https://www.nist.gov/environmental-policy-statement)
+*   [Scientific Integrity](https://www.nist.gov/summary-report-scientific-integrity)
+*   [Information Quality Standards](https://www.nist.gov/nist-information-quality-standards)
+*   [Commerce.gov](https://www.commerce.gov/)
+*   [Science.gov](http://www.science.gov/)
+*   [USA.gov](http://www.usa.gov/)
+*   [Vote.gov](https://vote.gov/)
+
+Back to top
+
+2. Quantum Computers Explained: How Quantum Computing Works
+   https://www.youtube.com/watch?v=B3U1NDUiwSA
+   Quantum Computers Explained: How Quantum Computing Works
+Science ABC
+533000 subscribers
+9999 likes
+797984 views
+23 Sep 2024
+What is a quantum computer and how does it work? In this video, we explain quantum computing in simple words — from qubits and superposition to quantum entanglement and quantum…

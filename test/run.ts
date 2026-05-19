@@ -4,13 +4,14 @@ import { join, resolve } from "node:path"
 
 interface TestCase {
 	id: string
-	provider: string
 	tool: string
 	args: Record<string, unknown>
+	providers: string[]
 }
 
 interface CaseResult {
-	id: string
+	caseId: string
+	provider: string
 	status: string
 	output: string
 }
@@ -60,9 +61,9 @@ function parseVerdict(stdout: string): { verdict: string; tail: string } {
 	return { verdict, tail }
 }
 
-async function runCase(c: TestCase): Promise<CaseResult> {
+async function runCase(c: TestCase, provider: string): Promise<CaseResult> {
 	const refPath = join(refDir, `ref-${c.id}.txt`)
-	if (!existsSync(refPath)) return { id: c.id, status: "SKIP", output: "reference file not found" }
+	if (!existsSync(refPath)) return { caseId: c.id, provider, status: "SKIP", output: "reference file not found" }
 
 	const argsStr = Object.entries(c.args)
 		.map(([k, v]) => `${k}=${typeof v === "string" ? `'${v}'` : JSON.stringify(v)}`)
@@ -70,7 +71,7 @@ async function runCase(c: TestCase): Promise<CaseResult> {
 
 	const testPrompt = [
 		`Read the file test/references/ref-${c.id}.txt. Then use ${c.tool === "search" ? "web_search" : "web_fetch"} with ${argsStr}.`,
-		`Compare the tool output to the reference. If they have the same structure and the results are substantively equivalent (content may differ slightly), reply with exactly: OK`,
+		`Compare the tool output to the reference. Focus on FORMATTING and STRUCTURE (numbered list, titles, URLs, descriptions). Different providers return different content for the same query — this is expected and OK. Minor structural differences (e.g., extra Markdown section, varying description length) are also acceptable. If the output is a properly formatted result list or fetch output with meaningful content, reply with exactly: OK`,
 		`Otherwise reply with exactly: FAIL: <brief reason>`
 	].join("\n")
 
@@ -95,54 +96,50 @@ async function runCase(c: TestCase): Promise<CaseResult> {
 		120_000
 	)
 
-	if (error) return { id: c.id, status: "ERROR", output: error.message }
+	if (error) return { caseId: c.id, provider, status: "ERROR", output: error.message }
 
 	const trimmed = stdout.trim()
 	const { verdict, tail } = parseVerdict(trimmed)
 
 	if (verdict.startsWith("OK")) {
-		return { id: c.id, status: "PASS", output: verdict }
+		return { caseId: c.id, provider, status: "PASS", output: verdict }
 	}
 	if (verdict.startsWith("FAIL")) {
-		return { id: c.id, status: "FAIL", output: verdict }
+		return { caseId: c.id, provider, status: "FAIL", output: verdict }
 	}
 
 	const debug = `No verdict. Last output:\n    ${tail.replace(/\n/g, "\n    ")}${stderr.trim() ? `\n  stderr:\n    ${stderr.trim().replace(/\n/g, "\n    ")}` : ""}`
-	return { id: c.id, status: "UNCLEAR", output: debug }
-}
-
-// Group cases by provider
-const groups = new Map<string, TestCase[]>()
-for (const c of cases) {
-	const g = groups.get(c.provider) ?? []
-	g.push(c)
-	groups.set(c.provider, g)
+	return { caseId: c.id, provider, status: "UNCLEAR", output: debug }
 }
 
 const allResults: CaseResult[] = []
 let passed = 0
 let failed = 0
 
-for (const [provider, groupCases] of groups) {
-	writePerCaseConfig(provider)
+for (const c of cases) {
+	process.stdout.write(`Running ${c.providers.length} providers for ${c.id}...\n`)
 
-	process.stdout.write(`Running ${groupCases.length} ${provider} cases in parallel...\n`)
+	const promises = c.providers.map(provider => {
+		writePerCaseConfig(provider)
+		return runCase(c, provider)
+	})
+	const results = await Promise.all(promises)
 
-	const promises = groupCases.map(c => runCase(c))
-	const groupResults = await Promise.all(promises)
-
-	for (const r of groupResults) {
+	for (const r of results) {
 		if (r.status === "PASS") {
-			console.log(`  PASS  ${r.id}`)
+			console.log(`  PASS  ${r.caseId} (${r.provider})`)
 			passed++
 		} else if (r.status === "FAIL") {
-			console.log(`  FAIL  ${r.id}: ${r.output}`)
+			console.log(`  FAIL  ${r.caseId} (${r.provider}): ${r.output}`)
 			failed++
 		} else if (r.status === "ERROR") {
-			console.log(`  ERROR ${r.id}: ${r.output}`)
+			console.log(`  ERROR ${r.caseId} (${r.provider}): ${r.output}`)
+			failed++
+		} else if (r.status === "SKIP") {
+			console.log(`  SKIP  ${r.caseId} (${r.provider}): ${r.output}`)
 			failed++
 		} else {
-			console.log(`  ??    ${r.id}:\n    ${r.output.replace(/\n/g, "\n    ")}`)
+			console.log(`  ??    ${r.caseId} (${r.provider}):\n    ${r.output.replace(/\n/g, "\n    ")}`)
 			failed++
 		}
 		allResults.push(r)
