@@ -18,6 +18,8 @@ const cases = JSON.parse(readFileSync(join(import.meta.dirname, "cases.json"), "
 const refDir = join(import.meta.dirname, "references")
 mkdirSync(refDir, { recursive: true })
 
+let failed = 0
+
 for (const c of cases) {
 	const config: WebToolsConfig = {
 		webSearch: { provider: "tavily" },
@@ -48,6 +50,7 @@ for (const c of cases) {
 			result = await fetchImpl(config, params)
 		} else {
 			console.error(`  Unknown tool: ${c.tool}`)
+			failed++
 			continue
 		}
 
@@ -56,8 +59,10 @@ for (const c of cases) {
 		writeFileSync(refPath, text)
 		console.log(`  → wrote ${refPath} (${text.length} chars)`)
 	} catch (err) {
+		failed++
 		console.error(`  ✗ FAILED: ${err instanceof Error ? err.message : String(err)}`)
 	}
 }
 
-console.log("\nDone.")
+console.log(`\nDone. ${failed} failed.`)
+process.exit(failed > 0 ? 1 : 0)
