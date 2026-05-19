@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join, resolve } from "node:path"
 import { StringEnum } from "@earendil-works/pi-ai"
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent"
+import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent"
 import { Text } from "@earendil-works/pi-tui"
 import { Type } from "typebox"
 import { asErrorMessage, formatSearchOutput, stringify } from "./format.js"
@@ -13,6 +13,7 @@ import { tavilyProvider } from "./providers/tavily.js"
 import type { Provider, WebToolsConfig } from "./providers/types.js"
 
 const DEFAULT_TIMEOUT_MS = 30_000
+const COLLAPSED_RESULT_LINES = 6
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -88,6 +89,25 @@ export interface ToolResult {
 	content: Array<{ type: "text"; text: string }>
 	details: unknown
 	isError?: boolean
+}
+
+function renderTextResult(
+	result: { content: Array<{ type: string; text?: string }> },
+	expanded: boolean,
+	theme: Theme,
+	partialLabel: string
+) {
+	const content = result.content[0]
+	if (content?.type !== "text" || content.text === undefined) return new Text(theme.fg("error", "No text output"), 0, 0)
+	if (!content.text.trim()) return new Text(theme.fg("dim", partialLabel), 0, 0)
+
+	const lines = content.text.split("\n")
+	const shown = expanded ? lines : lines.slice(0, COLLAPSED_RESULT_LINES)
+	let text = shown.map(line => theme.fg("toolOutput", line)).join("\n")
+	if (!expanded && lines.length > COLLAPSED_RESULT_LINES) {
+		text += `\n${theme.fg("muted", `... ${lines.length - COLLAPSED_RESULT_LINES} more lines (ctrl-o to expand)`)}`
+	}
+	return new Text(text, 0, 0)
 }
 
 // ── Standalone tool implementations (exported for testing) ──────────────────
@@ -214,6 +234,9 @@ export default function (pi: ExtensionAPI) {
 			)
 			return text
 		},
+		renderResult(result, { expanded, isPartial }, theme) {
+			return renderTextResult(result, expanded, theme, isPartial ? "Searching..." : "No results")
+		},
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			try {
 				const config = loadConfig(ctx.cwd)
@@ -267,6 +290,9 @@ export default function (pi: ExtensionAPI) {
 			const suffix = bits.length ? ` ${theme.fg("dim", `(${bits.join(", ")})`)}` : ""
 			text.setText(`${theme.fg("toolTitle", theme.bold("web_fetch "))}${theme.fg("muted", args.url)}${suffix}`)
 			return text
+		},
+		renderResult(result, { expanded, isPartial }, theme) {
+			return renderTextResult(result, expanded, theme, isPartial ? "Fetching..." : "No content")
 		},
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			try {

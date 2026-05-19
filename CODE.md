@@ -20,8 +20,8 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `extensions/web-tools/index.ts` registers two tools and one command.
 Exports `searchImpl` and `fetchImpl` standalone functions for testing — they take `WebToolsConfig` + params + optional signal/onUpdate, call provider methods, return `{content, details}`.
 
-- `web_search`: web/news/images search dispatching to configured search provider.
-- `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Public options: `url`, optional `waitFor`, optional `timeout`, optional `includeMetadata`. Tool call rendering shows supplied non-default args.
+- `web_search`: web/news/images search dispatching to configured search provider. Result rendering shows the first few output lines until expanded.
+- `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Public options: `url`, optional `waitFor`, optional `timeout`, optional `includeMetadata`. Tool call rendering shows supplied non-default args. Result rendering shows the first few output lines until expanded.
 - `/web-tools`: interactive command to configure providers and API keys.
 
 ## Provider dispatch
