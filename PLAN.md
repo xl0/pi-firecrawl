@@ -3,6 +3,7 @@
 ## High-level
 - Package is `@xl0/pi-web-tools` (multi-provider web tools).
 - Keep `web_search` and `web_fetch` tool names; dispatch to configured provider at runtime.
+- Add standalone `web_image` for URL → LLM image content; no provider/API key needed.
 - Search and fetch providers configurable independently.
 - Persist config in `xl0-web-tools.json` (`~/.pi/agent/` + project `.pi/`, project overrides global).
 - Register `/web-tools` for interactive provider/API-key config.
@@ -13,7 +14,7 @@
 ## Architecture
 ```
 extensions/web-tools/
-  index.ts              - registers tools + command, reads config, dispatches
+  index.ts              - registers tools + command, reads config, dispatches, downloads image URLs for `web_image`
   format.ts             - formatSearchOutput, stringify, asErrorMessage
   providers/
     types.ts            - Provider/WebToolsConfig interfaces
@@ -62,10 +63,11 @@ interface Provider {
 - Source mapping is provider-specific: Firecrawl uses `sources`; Exa/Tavily map `news` to their news category/topic and treat `images` as unsupported/no-op; Brave uses separate web/news/images endpoints.
 - Each provider normalizes API responses into `SearchResult[]` and exposes raw API response in `details`.
 - `format.ts` remains provider-agnostic.
+- `web_image` is intentionally URL-only. Provider image discovery can expose URLs later; `web_image` decides which URL becomes actual image context.
 
 ## Test plan
 - Keep LLM-judged integration tests as smoke coverage over live providers.
-- Prefer adding cheap direct tests for deterministic logic if this grows: formatting, config/provider resolution, Brave fetch rejection, env loading.
+- Prefer adding cheap direct tests for deterministic logic if this grows: formatting, config/provider resolution, Brave fetch rejection, env loading, image MIME/size validation.
 
 ## Done
 - [x] Package renamed, zero runtime deps, old extension removed, checks pass.
@@ -75,3 +77,4 @@ interface Provider {
 - [x] Integration tests: 10 cases pass (3 firecrawl + 3 exa + 3 tavily + 1 brave).
 - [x] Test harness loads `test/.env`, avoids config races, runs Pi with `--no-session`, removes temp config in `finally`, parses exact final verdicts, and reference updates exit non-zero on failures.
 - [x] Provider HTTP timeout/error handling deduplicated in `providers/http.ts`; README provider list updated.
+- [x] `web_image` implemented as URL-only image downloader with MIME/size validation and image content output.

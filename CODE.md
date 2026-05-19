@@ -17,11 +17,12 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`/environment, saves tool text as reference, exits non-zero on failures.
 
 ## Extension
-`extensions/web-tools/index.ts` registers two tools and one command.
-Exports `searchImpl` and `fetchImpl` standalone functions for testing — they take `WebToolsConfig` + params + optional signal/onUpdate, call provider methods, return `{content, details}`.
+`extensions/web-tools/index.ts` registers three tools and one command.
+Exports `searchImpl`, `fetchImpl`, and `imageImpl` standalone functions for testing. Search/fetch take `WebToolsConfig` + params + optional signal/onUpdate and call provider methods. Image takes direct URL params and downloads the image itself. All return `{content, details}`.
 
 - `web_search`: web/news/images search dispatching to configured search provider. Result rendering shows the first few output lines until expanded.
 - `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Public options: `url`, optional `waitFor`, optional `timeout`, optional `includeMetadata`. Tool call rendering shows supplied non-default args. Result rendering shows the first few output lines until expanded.
+- `web_image`: fetch a direct image URL without provider config/API keys and return a short text note plus one image content block, matching Pi `read` image behavior. Supports PNG/JPEG/WebP/GIF, default 5 MB download cap, maximum 20 MB, optional timeout/maxBytes. Downloaded images are passed through Pi's `resizeImage()` before returning to the LLM; if decoding/resizing cannot fit inline limits, the image is omitted with a note. Metadata lives in `details`; Pi's generic image-content renderer displays the image block.
 - `/web-tools`: interactive command to configure providers and API keys.
 
 ## Provider dispatch
@@ -71,6 +72,7 @@ WebToolsConfig { webSearch?, webFetch?, webApiKeys? }
 
 ## Shared HTTP (`providers/http.ts`)
 `requestJson()` wraps provider HTTP requests with timeout, abort propagation, non-2xx error text, and JSON parsing.
+`web_image` downloads with `fetch()`, validates HTTP status, supported image MIME type, response body, and byte cap while streaming; then uses Pi's exported image resize helper to enforce inline image limits. Tool content contains a short text note plus the resized image block (or decode/resize omission note), with URL/mime/bytes/contentLength/dimensions/originalDimensions/wasResized metadata in `details`.
 
 ## Formatting (`format.ts`)
 Provider-agnostic: `formatSearchOutput(results: SearchResult[])` truncates non-fetched result descriptions at 300 chars; `stringify()`, `asErrorMessage()`.

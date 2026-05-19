@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join, resolve } from "node:path"
-import { StringEnum } from "@earendil-works/pi-ai"
-import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent"
-import { Text } from "@earendil-works/pi-tui"
+import { type ImageContent, StringEnum, type TextContent } from "@earendil-works/pi-ai"
+import { type ExtensionAPI, formatDimensionNote, resizeImage, type Theme } from "@earendil-works/pi-coding-agent"
+import { getImageDimensions, Text } from "@earendil-works/pi-tui"
 import { Type } from "typebox"
 import { asErrorMessage, formatSearchOutput, stringify } from "./format.js"
 import { braveProvider } from "./providers/brave.js"
@@ -13,6 +13,9 @@ import { tavilyProvider } from "./providers/tavily.js"
 import type { Provider, WebToolsConfig } from "./providers/types.js"
 
 const DEFAULT_TIMEOUT_MS = 30_000
+const DEFAULT_MAX_IMAGE_BYTES = 5_000_000
+const MAX_IMAGE_BYTES = 20_000_000
+const SUPPORTED_IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"])
 const COLLAPSED_RESULT_LINES = 6
 
 // ── Config ──────────────────────────────────────────────────────────────────
@@ -85,8 +88,64 @@ function writeConfigFile(path: string, config: WebToolsConfig): void {
 	writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`, "utf-8")
 }
 
+async function fetchImageContent(
+	url: string,
+	opts: { timeout: number; maxBytes: number },
+	signal?: AbortSignal
+): Promise<{ data: string; mimeType: string; bytes: number; contentLength?: number }> {
+	const controller = new AbortController()
+	const timer = setTimeout(() => controller.abort(), opts.timeout)
+	const abort = () => controller.abort()
+	if (signal?.aborted) controller.abort()
+	else signal?.addEventListener("abort", abort, { once: true })
+
+	try {
+		const res = await fetch(url, { signal: controller.signal })
+		if (!res.ok) {
+			const text = await res.text()
+			throw new Error(`Image request failed (${res.status}): ${text}`)
+		}
+
+		const mimeType = res.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase()
+		if (!mimeType || !SUPPORTED_IMAGE_MIME_TYPES.has(mimeType)) {
+			throw new Error(`Unsupported image content-type: ${mimeType || "missing"}`)
+		}
+
+		const contentLength = res.headers.get("content-length")
+		const parsedContentLength = contentLength ? Number(contentLength) : undefined
+		if (parsedContentLength !== undefined && parsedContentLength > opts.maxBytes) {
+			throw new Error(`Image too large: ${contentLength} bytes exceeds ${opts.maxBytes}`)
+		}
+		if (!res.body) throw new Error("Image response had no body")
+
+		let bytes = 0
+		const chunks: Uint8Array[] = []
+		const reader = res.body.getReader()
+		while (true) {
+			const { done, value } = await reader.read()
+			if (done) break
+			bytes += value.byteLength
+			if (bytes > opts.maxBytes) {
+				await reader.cancel()
+				throw new Error(`Image too large: exceeded ${opts.maxBytes} bytes`)
+			}
+			chunks.push(value)
+		}
+
+		return {
+			data: Buffer.concat(chunks).toString("base64"),
+			mimeType,
+			bytes,
+			...(parsedContentLength !== undefined ? { contentLength: parsedContentLength } : {})
+		}
+	} finally {
+		clearTimeout(timer)
+		signal?.removeEventListener("abort", abort)
+	}
+}
+
 export interface ToolResult {
-	content: Array<{ type: "text"; text: string }>
+	content: Array<TextContent | ImageContent>
 	details: unknown
 	isError?: boolean
 }
@@ -195,6 +254,57 @@ export async function fetchImpl(
 	}
 	onUpdate?.(toolResult)
 	return toolResult
+}
+
+export async function imageImpl(
+	params: { url: string; timeout?: number; maxBytes?: number },
+	signal?: AbortSignal,
+	onUpdate?: (result: ToolResult) => void
+): Promise<ToolResult> {
+	const maxBytes = params.maxBytes ?? DEFAULT_MAX_IMAGE_BYTES
+	if (maxBytes > MAX_IMAGE_BYTES) throw new Error(`maxBytes cannot exceed ${MAX_IMAGE_BYTES}`)
+
+	const image = await fetchImageContent(params.url, { timeout: params.timeout ?? DEFAULT_TIMEOUT_MS, maxBytes }, signal)
+	if (signal?.aborted) throw new Error("Image fetch cancelled")
+
+	const originalDimensions = getImageDimensions(image.data, image.mimeType) ?? undefined
+	const resized = await resizeImage({ type: "image", data: image.data, mimeType: image.mimeType })
+	if (!resized) {
+		const note = `Fetched image [${image.mimeType}]\n[Image omitted: could not be decoded or resized below the inline image size limit.]`
+		const result: ToolResult = {
+			content: [{ type: "text" as const, text: note }],
+			details: {
+				url: params.url,
+				mimeType: image.mimeType,
+				bytes: image.bytes,
+				contentLength: image.contentLength,
+				dimensions: originalDimensions
+			}
+		}
+		onUpdate?.(result)
+		return result
+	}
+
+	const dimensionNote = formatDimensionNote(resized)
+	const note = `Fetched image [${resized.mimeType}]${dimensionNote ? `\n${dimensionNote}` : ""}`
+	const dimensions = { widthPx: resized.width, heightPx: resized.height }
+	const result: ToolResult = {
+		content: [
+			{ type: "text" as const, text: note },
+			{ type: "image" as const, data: resized.data, mimeType: resized.mimeType }
+		],
+		details: {
+			url: params.url,
+			mimeType: resized.mimeType,
+			bytes: image.bytes,
+			contentLength: image.contentLength,
+			dimensions,
+			originalDimensions,
+			wasResized: resized.wasResized
+		}
+	}
+	onUpdate?.(result)
+	return result
 }
 
 // ── Extension ───────────────────────────────────────────────────────────────
@@ -306,6 +416,52 @@ export default function (pi: ExtensionAPI) {
 			} catch (error) {
 				return {
 					content: [{ type: "text", text: `Web fetch failed: ${asErrorMessage(error)}` }],
+					details: { error: asErrorMessage(error) },
+					isError: true
+				}
+			}
+		}
+	})
+
+	pi.registerTool({
+		name: "web_image",
+		label: "Web Image",
+		description: "Fetch an image URL and return it as image content for vision-capable models.",
+		promptSnippet: "Use web_image to fetch an image URL as image content.",
+		promptGuidelines: [
+			"Use web_image when you need to inspect a specific image URL with a vision-capable model.",
+			"Prefer web_image only for selected images; web pages can contain many irrelevant images."
+		],
+		parameters: Type.Object({
+			url: Type.String({ description: "The image URL to fetch.", format: "uri" }),
+			timeout: Type.Optional(Type.Integer({ description: "Request timeout in milliseconds. Defaults to 30000.", minimum: 1 })),
+			maxBytes: Type.Optional(
+				Type.Integer({
+					description: `Maximum image size in bytes. Defaults to ${DEFAULT_MAX_IMAGE_BYTES}; maximum ${MAX_IMAGE_BYTES}.`,
+					minimum: 1,
+					maximum: MAX_IMAGE_BYTES
+				})
+			)
+		}),
+		renderCall(args, theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
+			const bits: string[] = []
+			if (args.timeout !== undefined) bits.push(`timeout ${args.timeout}ms`)
+			if (args.maxBytes !== undefined) bits.push(`max ${args.maxBytes} bytes`)
+			const suffix = bits.length ? ` ${theme.fg("dim", `(${bits.join(", ")})`)}` : ""
+			text.setText(`${theme.fg("toolTitle", theme.bold("web_image "))}${theme.fg("muted", args.url)}${suffix}`)
+			return text
+		},
+		async execute(_toolCallId, params, signal, onUpdate) {
+			try {
+				onUpdate?.({
+					content: [{ type: "text", text: `Fetching image: ${params.url}` }],
+					details: undefined as unknown
+				})
+				return await imageImpl(params, signal, onUpdate)
+			} catch (error) {
+				return {
+					content: [{ type: "text", text: `Web image failed: ${asErrorMessage(error)}` }],
 					details: { error: asErrorMessage(error) },
 					isError: true
 				}
