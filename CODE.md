@@ -13,7 +13,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/references/ref-*.txt` — shared reference snapshots, generated from Tavily (provider-agnostic). All providers compare against the same refs; LLM judges formatting/structure, not content.
 `test/.env` — API keys for providers (gitignored), loaded by test scripts without overriding existing environment variables.
 `test/env.ts` — tiny `.env` loader shared by test scripts.
-`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)`. Per-provider config written to `.pi/xl0-web-tools.json` and removed at the end. LLM compares output structure to reference with per-case expectations, replies OK/FAIL. Summary at end, exits non-zero on failures.
+`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)`. Per-provider config written to `.pi/xl0-web-tools.json` and removed in a `finally` block. LLM compares output structure to reference with per-case expectations; final line must be exact `OK` or `FAIL: ...`. Summary at end, exits non-zero on failures.
 `test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`/environment, saves tool text as reference.
 
 ## Extension
