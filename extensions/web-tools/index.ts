@@ -1,0 +1,329 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { homedir } from "node:os"
+import { join, resolve } from "node:path"
+import { StringEnum } from "@earendil-works/pi-ai"
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent"
+import { Text } from "@earendil-works/pi-tui"
+import { Type } from "typebox"
+import { asErrorMessage, formatSearchOutput, stringify } from "./format.js"
+import { exaProvider } from "./providers/exa.js"
+import { firecrawlProvider } from "./providers/firecrawl.js"
+import type { Provider, WebToolsConfig } from "./providers/types.js"
+
+const DEFAULT_TIMEOUT_MS = 30_000
+
+// ── Config ──────────────────────────────────────────────────────────────────
+
+const providers: Record<string, Provider> = {
+	firecrawl: firecrawlProvider,
+	exa: exaProvider
+}
+
+const providerNames = ["firecrawl", "exa"] as const
+
+function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): string {
+	const direct = type === "search" ? config.webSearch?.provider : config.webFetch?.provider
+	const fallback = type === "fetch" ? config.webSearch?.provider : undefined
+	const id = direct || fallback
+	if (!id) {
+		const hint = type === "search" ? "webSearch.provider" : "webFetch.provider"
+		throw new Error(`No ${type} provider configured. Set ${hint} via /web-provider.`)
+	}
+	if (!providers[id]) throw new Error(`Unknown provider "${id}". Available: ${Object.keys(providers).join(", ")}.`)
+	return id
+}
+
+function getProvider(type: "search" | "fetch", config: WebToolsConfig): Provider {
+	const id = resolveProviderId(type, config)
+	const provider = providers[id]
+	if (!provider) throw new Error(`Provider "${id}" not found.`)
+	return provider
+}
+
+function resolveApiKey(provider: Provider, config: WebToolsConfig): string {
+	const key = config.webApiKeys?.[provider.id]
+	if (key) return key
+	const envKey = process.env[provider.envApiKey]
+	if (envKey) return envKey
+	throw new Error(`No API key for ${provider.label}. Set it via /web-provider or set the ${provider.envApiKey} environment variable.`)
+}
+
+function loadConfig(cwd: string): WebToolsConfig {
+	const global = readConfigFile(join(homedir(), ".pi", "agent", "xl0-web-tools.json"))
+	const project = readConfigFile(resolve(cwd, ".pi", "xl0-web-tools.json"))
+	return {
+		...global,
+		...project,
+		webApiKeys: { ...global.webApiKeys, ...project.webApiKeys }
+	}
+}
+
+function readConfigFile(path: string): WebToolsConfig {
+	try {
+		if (!existsSync(path)) return {}
+		const raw = readFileSync(path, "utf-8")
+		return JSON.parse(raw) as WebToolsConfig
+	} catch {
+		return {}
+	}
+}
+
+function writeConfigFile(path: string, config: WebToolsConfig): void {
+	mkdirSync(resolve(path, ".."), { recursive: true })
+	writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`, "utf-8")
+}
+
+// ── Extension ───────────────────────────────────────────────────────────────
+
+export default function (pi: ExtensionAPI) {
+	pi.registerTool({
+		name: "web_search",
+		label: "Web Search",
+		description: "Search the web.",
+		promptSnippet: "Use web_search for current web information.",
+		promptGuidelines: [
+			"Use web_search when the user asks for current web information, discovery, or sources beyond the local workspace.",
+			"Use web_fetch after web_search when you need the full content of a specific page."
+		],
+		parameters: Type.Object({
+			query: Type.String({ description: "The web search query." }),
+			limit: Type.Optional(
+				Type.Integer({
+					description: "Maximum number of results to return. Defaults to 5.",
+					minimum: 1,
+					maximum: 20
+				})
+			),
+			source: Type.Optional(StringEnum(["web", "news", "images"] as const)),
+			fetchResult: Type.Optional(
+				Type.Boolean({
+					description: "Whether to fetch the first result and include markdown. Defaults to true."
+				})
+			)
+		}),
+		renderCall(args, theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
+			const bits = [args.source ?? "web", `limit ${args.limit ?? 5}`]
+			if (args.fetchResult ?? true) bits.push("fetch first")
+			text.setText(
+				`${theme.fg("toolTitle", theme.bold("web_search "))}${theme.fg("muted", `"${args.query}"`)} ${theme.fg("dim", `(${bits.join(", ")})`)}`
+			)
+			return text
+		},
+		async execute(_toolCallId, params, signal, onUpdate, ctx) {
+			try {
+				const config = loadConfig(ctx.cwd)
+				const searchProvider = getProvider("search", config)
+				const apiKey = resolveApiKey(searchProvider, config)
+
+				onUpdate?.({
+					content: [{ type: "text", text: `Searching web with ${searchProvider.label} for: ${params.query}` }],
+					details: undefined
+				})
+
+				const searchResult = await searchProvider.search(
+					apiKey,
+					params.query,
+					{
+						limit: params.limit ?? 5,
+						timeout: DEFAULT_TIMEOUT_MS,
+						...(params.source !== undefined ? { source: params.source } : {})
+					},
+					signal
+				)
+
+				if (signal?.aborted) throw new Error("Search cancelled")
+
+				const shouldFetch = params.fetchResult ?? true
+				const first = searchResult.results[0]
+				if (shouldFetch && first?.url) {
+					onUpdate?.({
+						content: [{ type: "text", text: `Fetching first result with ${searchProvider.label} (fetch step): ${first.url}` }],
+						details: undefined
+					})
+
+					try {
+						const fetchProvider = getProvider("fetch", config)
+						const fetchApiKey = resolveApiKey(fetchProvider, config)
+						const fetched = await fetchProvider.fetch(
+							fetchApiKey,
+							first.url,
+							{
+								onlyMainContent: true,
+								timeout: DEFAULT_TIMEOUT_MS
+							},
+							signal
+						)
+
+						if (signal?.aborted) throw new Error("Search cancelled")
+						first.markdown = fetched.markdown
+						if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
+					} catch (err) {
+						first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`
+					}
+				}
+
+				return {
+					content: [{ type: "text", text: formatSearchOutput(searchResult.results) }],
+					details: searchResult.raw
+				}
+			} catch (error) {
+				return {
+					content: [{ type: "text", text: `Web search failed: ${asErrorMessage(error)}` }],
+					details: { error: asErrorMessage(error) },
+					isError: true
+				}
+			}
+		}
+	})
+
+	pi.registerTool({
+		name: "web_fetch",
+		label: "Web Fetch",
+		description: "Fetch a page as markdown. Metadata is verbose and opt-in.",
+		promptSnippet: "Use web_fetch to fetch a URL as markdown.",
+		promptGuidelines: [
+			"Use web_fetch when you need the full readable markdown content of a known URL.",
+			"Prefer web_fetch over bash/curl for web pages because web_fetch returns cleaned markdown suitable for agent context."
+		],
+		parameters: Type.Object({
+			url: Type.String({ description: "The URL to fetch.", format: "uri" }),
+			onlyMainContent: Type.Optional(Type.Boolean({ description: "Only return the main page content. Defaults to true." })),
+			waitFor: Type.Optional(
+				Type.Integer({
+					description: "Milliseconds to wait before capturing content, useful for JS-heavy pages.",
+					minimum: 0
+				})
+			),
+			timeout: Type.Optional(Type.Integer({ description: "Request timeout in milliseconds. Defaults to 30000.", minimum: 1 })),
+			includeMetadata: Type.Optional(
+				Type.Boolean({
+					description:
+						"Append verbose page metadata to the markdown output. Defaults to false. Full metadata is always available in details."
+				})
+			)
+		}),
+		renderCall(args, theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
+			text.setText(`${theme.fg("toolTitle", theme.bold("web_fetch "))}${theme.fg("muted", args.url)}`)
+			return text
+		},
+		async execute(_toolCallId, params, signal, onUpdate, ctx) {
+			try {
+				const config = loadConfig(ctx.cwd)
+				const fetchProvider = getProvider("fetch", config)
+				const apiKey = resolveApiKey(fetchProvider, config)
+
+				onUpdate?.({
+					content: [{ type: "text", text: `Fetching page with ${fetchProvider.label}: ${params.url}` }],
+					details: undefined
+				})
+
+				const result = await fetchProvider.fetch(
+					apiKey,
+					params.url,
+					{
+						onlyMainContent: params.onlyMainContent ?? true,
+						timeout: params.timeout ?? DEFAULT_TIMEOUT_MS,
+						...(params.waitFor !== undefined ? { waitFor: params.waitFor } : {})
+					},
+					signal
+				)
+
+				if (signal?.aborted) throw new Error("Fetch cancelled")
+
+				const metadata = params.includeMetadata && result.metadata ? `\n\nMetadata:\n${stringify(result.metadata)}` : ""
+
+				return {
+					content: [{ type: "text", text: `${result.markdown}${metadata}` }],
+					details: result.raw
+				}
+			} catch (error) {
+				return {
+					content: [{ type: "text", text: `Web fetch failed: ${asErrorMessage(error)}` }],
+					details: { error: asErrorMessage(error) },
+					isError: true
+				}
+			}
+		}
+	})
+
+	pi.registerCommand("web-provider", {
+		description: "Configure web search and fetch providers",
+		async handler(_args, ctx) {
+			if (!ctx.hasUI) {
+				ctx.ui.notify("The /web-provider command is only available in interactive mode.", "warning")
+				return
+			}
+
+			const scope = await ctx.ui.select("Config scope:", ["Global (~/.pi/agent/)", "Project (.pi/)"])
+			if (scope === undefined) return
+
+			const configPath = scope.startsWith("Global")
+				? join(homedir(), ".pi", "agent", "xl0-web-tools.json")
+				: resolve(ctx.cwd, ".pi", "xl0-web-tools.json")
+
+			const config = readConfigFile(configPath)
+
+			while (true) {
+				const searchId = config.webSearch?.provider ?? "(not set)"
+				const fetchId = config.webFetch?.provider ?? "(not set)"
+				const keysInfo =
+					Object.entries(config.webApiKeys ?? {})
+						.map(([k, v]) => `${k}: ${v ? "****" : "(empty)"}`)
+						.join(", ") || "none"
+
+				ctx.ui.notify(`Search: ${searchId} | Fetch: ${fetchId} | Keys: ${keysInfo}`, "info")
+
+				const action = await ctx.ui.select("What to configure?", [
+					`Set search provider (current: ${searchId})`,
+					`Set fetch provider (current: ${fetchId})`,
+					"Set API key for Firecrawl",
+					"Set API key for Exa",
+					"Done"
+				])
+				if (action === undefined) return
+
+				if (action === "Done") {
+					writeConfigFile(configPath, config)
+					ctx.ui.notify("Config saved.", "info")
+					return
+				}
+
+				if (action.includes("search provider")) {
+					const choice = await ctx.ui.select(
+						"Select search provider:",
+						providerNames.map(id => providers[id]?.label ?? id)
+					)
+					if (choice === undefined) continue
+					const providerId = providerNames.find(id => providers[id]?.label === choice)
+					if (providerId) config.webSearch = { provider: providerId }
+				} else if (action.includes("fetch provider")) {
+					const choice = await ctx.ui.select(
+						"Select fetch provider:",
+						providerNames.map(id => providers[id]?.label ?? id)
+					)
+					if (choice === undefined) continue
+					const providerId = providerNames.find(id => providers[id]?.label === choice)
+					if (providerId) config.webFetch = { provider: providerId }
+				} else if (action.includes("Firecrawl")) {
+					await setApiKey(ctx, config, "firecrawl")
+				} else if (action.includes("Exa")) {
+					await setApiKey(ctx, config, "exa")
+				}
+			}
+		}
+	})
+}
+
+async function setApiKey(
+	ctx: { ui: { input: (title: string, placeholder: string) => Promise<string | undefined> } },
+	config: WebToolsConfig,
+	providerId: string
+) {
+	const current = config.webApiKeys?.[providerId]
+	const key = await ctx.ui.input(`API key for ${providerId}${current ? " (current: ****)" : ""}:`, "Enter API key")
+	if (key === undefined) return
+	config.webApiKeys ??= {}
+	config.webApiKeys[providerId] = key
+}

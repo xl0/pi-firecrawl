@@ -69,14 +69,8 @@ Sequential dialogs using ctx.ui.select / ctx.ui.input:
 - Menu: "Set search provider" / "Set fetch provider" → select from available / "Set API key for <provider>" → input
 - Writes to the chosen scope's `xl0-web-tools.json`
 
-## Todo
-- [ ] Rename package.json → @xl0/pi-web-tools, bump to 0.3.0; remove dotenv + @mendable/firecrawl-js deps (zero runtime deps)
-- [ ] Remove extensions/firecrawl-web/
-- [ ] Create extensions/web-tools/ directory
-- [ ] Create providers/types.ts (Provider interface + SearchResult)
-- [ ] Create format.ts (formatSearchOutput, stringify, asErrorMessage — provider-agnostic)
-- [ ] Create providers/firecrawl.ts (fetch-based, env key: FIRECRAWL_API_KEY)
-- [ ] Create providers/exa.ts (fetch-based, env key: EXA_API_KEY)
-- [ ] Create index.ts (tools + command + config load/dispatch)
-- [ ] Update README.md
-- [ ] Verify with bun run check
+## Done
+- [x] Package renamed, zero runtime deps, old extension removed, all files created, checks pass.
+
+## Remaining
+(none)

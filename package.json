@@ -1,16 +1,16 @@
 {
-	"name": "@xl0/pi-firecrawl",
-	"version": "0.2.0",
+	"name": "@xl0/pi-web-tools",
+	"version": "0.3.0",
 	"keywords": [
 		"pi-package",
-		"firecrawl"
+		"web-tools"
 	],
 	"type": "module",
 	"license": "MIT",
-	"homepage": "https://github.com/xl0/pi-firecrawl#readme",
+	"homepage": "https://github.com/xl0/pi-web-tools#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/xl0/pi-firecrawl.git"
+		"url": "git+https://github.com/xl0/pi-web-tools.git"
 	},
 	"files": [
 		"extensions/",
@@ -26,10 +26,7 @@
 		"format:check": "biome format .",
 		"biome:check": "biome check ."
 	},
-	"dependencies": {
-		"@mendable/firecrawl-js": "^1.29.3",
-		"dotenv": "^16.5.0"
-	},
+	"dependencies": {},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.14",
 		"@typescript/native-preview": "^7.0.0-dev.20260502.1",
