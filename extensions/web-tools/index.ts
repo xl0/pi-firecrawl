@@ -6,8 +6,10 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent"
 import { Text } from "@earendil-works/pi-tui"
 import { Type } from "typebox"
 import { asErrorMessage, formatSearchOutput, stringify } from "./format.js"
+import { braveProvider } from "./providers/brave.js"
 import { exaProvider } from "./providers/exa.js"
 import { firecrawlProvider } from "./providers/firecrawl.js"
+import { tavilyProvider } from "./providers/tavily.js"
 import type { Provider, WebToolsConfig } from "./providers/types.js"
 
 const DEFAULT_TIMEOUT_MS = 30_000
@@ -16,10 +18,12 @@ const DEFAULT_TIMEOUT_MS = 30_000
 
 const providers: Record<string, Provider> = {
 	firecrawl: firecrawlProvider,
-	exa: exaProvider
+	exa: exaProvider,
+	tavily: tavilyProvider,
+	brave: braveProvider
 }
 
-const providerNames = ["firecrawl", "exa"] as const
+const providerNames = ["firecrawl", "exa", "tavily", "brave"] as const
 
 function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): string {
 	const direct = type === "search" ? config.webSearch?.provider : config.webFetch?.provider
@@ -33,11 +37,18 @@ function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): st
 	return id
 }
 
+function getProvider(type: "fetch", config: WebToolsConfig): Provider & { fetch: NonNullable<Provider["fetch"]> }
+function getProvider(type: "search", config: WebToolsConfig): Provider
 function getProvider(type: "search" | "fetch", config: WebToolsConfig): Provider {
 	const id = resolveProviderId(type, config)
 	const provider = providers[id]
 	if (!provider) throw new Error(`Provider "${id}" not found.`)
-	return provider
+	if (type === "fetch" && provider.hasFetch === false) {
+		throw new Error(
+			`${provider.label} does not support fetching pages. Configure a fetch-capable provider (e.g. firecrawl, exa, tavily) via /web-tools.`
+		)
+	}
+	return provider as Provider & { fetch: NonNullable<Provider["fetch"]> }
 }
 
 function resolveApiKey(provider: Provider, config: WebToolsConfig): string {
@@ -112,12 +123,16 @@ export async function searchImpl(
 		})
 		try {
 			const fetchProvider = getProvider("fetch", config)
-			const fetchApiKey = resolveApiKey(fetchProvider, config)
-			const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
+			if (fetchProvider.hasFetch === false) {
+				first.description = first.description || "[Fetch skipped: Brave Search does not support page fetching]"
+			} else {
+				const fetchApiKey = resolveApiKey(fetchProvider, config)
+				const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
 
-			if (signal?.aborted) throw new Error("Search cancelled")
-			first.markdown = fetched.markdown
-			if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
+				if (signal?.aborted) throw new Error("Search cancelled")
+				first.markdown = fetched.markdown
+				if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
+			}
 		} catch (err) {
 			first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`
 		}
@@ -153,8 +168,8 @@ export async function fetchImpl(
 	if (signal?.aborted) throw new Error("Fetch cancelled")
 
 	const warning =
-		fetchProvider.id === "exa" && params.waitFor !== undefined
-			? `Warning: Exa ignores waitFor; request sent without any extra page-load delay.\n\n`
+		["exa", "tavily"].includes(fetchProvider.id) && params.waitFor !== undefined
+			? `Warning: ${fetchProvider.label} ignores waitFor; request sent without any extra page-load delay.\n\n`
 			: ""
 	const metadata = params.includeMetadata && result.metadata ? `\n\nMetadata:\n${stringify(result.metadata)}` : ""
 
@@ -303,13 +318,13 @@ export default function (pi: ExtensionAPI) {
 
 				ctx.ui.notify(`Search: ${searchId} | Fetch: ${fetchId} | Keys: ${keysInfo}`, "info")
 
-				const action = await ctx.ui.select("What to configure?", [
+				const menuItems = [
 					`Set search provider (current: ${searchId})`,
 					`Set fetch provider (current: ${fetchId})`,
-					"Set API key for Firecrawl",
-					"Set API key for Exa",
+					...providerNames.map(id => `Set API key for ${providers[id]?.label ?? id}`),
 					"Done"
-				])
+				]
+				const action = await ctx.ui.select("What to configure?", menuItems)
 				if (action === undefined) return
 
 				if (action === "Done") {
@@ -329,15 +344,14 @@ export default function (pi: ExtensionAPI) {
 				} else if (action.includes("fetch provider")) {
 					const choice = await ctx.ui.select(
 						"Select fetch provider:",
-						providerNames.map(id => providers[id]?.label ?? id)
+						providerNames.filter(id => providers[id]?.hasFetch !== false).map(id => providers[id]?.label ?? id)
 					)
 					if (choice === undefined) continue
 					const providerId = providerNames.find(id => providers[id]?.label === choice)
 					if (providerId) config.webFetch = { provider: providerId }
-				} else if (action.includes("Firecrawl")) {
-					await setApiKey(ctx, config, "firecrawl")
-				} else if (action.includes("Exa")) {
-					await setApiKey(ctx, config, "exa")
+				} else {
+					const keyEntry = providerNames.find(id => action.includes(providers[id]?.label ?? id))
+					if (keyEntry) await setApiKey(ctx, config, keyEntry)
 				}
 			}
 		}
@@ -350,7 +364,8 @@ async function setApiKey(
 	providerId: string
 ) {
 	const current = config.webApiKeys?.[providerId]
-	const key = await ctx.ui.input(`API key for ${providerId}${current ? " (current: ****)" : ""}:`, "Enter API key")
+	const label = providers[providerId]?.label ?? providerId
+	const key = await ctx.ui.input(`API key for ${label}${current ? " (current: ****)" : ""}:`, "Enter API key")
 	if (key === undefined) return
 	config.webApiKeys ??= {}
 	config.webApiKeys[providerId] = key

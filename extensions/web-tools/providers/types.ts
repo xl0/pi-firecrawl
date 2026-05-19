@@ -9,13 +9,14 @@ export interface Provider {
 	readonly id: string
 	readonly label: string
 	readonly envApiKey: string
+	readonly hasFetch?: boolean // default true; false for search-only providers
 	search(
 		apiKey: string,
 		query: string,
 		opts: { limit: number; source?: string; timeout?: number },
 		signal?: AbortSignal
 	): Promise<{ results: SearchResult[]; raw: unknown }>
-	fetch(
+	fetch?(
 		apiKey: string,
 		url: string,
 		opts: { waitFor?: number; timeout?: number },
