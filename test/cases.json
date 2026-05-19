@@ -9,7 +9,7 @@
 		"id": "search-fetch",
 		"tool": "search",
 		"args": { "query": "quantum computing explained", "limit": 2, "fetchResult": true },
-		"providers": ["firecrawl", "exa", "tavily", "brave"]
+		"providers": ["firecrawl", "exa", "tavily"]
 	},
 	{
 		"id": "fetch",

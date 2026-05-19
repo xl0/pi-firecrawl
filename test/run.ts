@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process"
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
+import { loadTestEnv } from "./env.js"
 
 interface TestCase {
 	id: string
@@ -15,6 +16,8 @@ interface CaseResult {
 	status: string
 	output: string
 }
+
+loadTestEnv(join(import.meta.dirname, ".env"))
 
 const cases = JSON.parse(readFileSync(join(import.meta.dirname, "cases.json"), "utf-8")) as TestCase[]
 const projectRoot = resolve(import.meta.dirname, "..")
@@ -33,7 +36,10 @@ const systemPrompt = [
 	"Follow instructions exactly."
 ].join(" ")
 
-function runPi(args: string[], timeout: number): Promise<{ stdout: string; stderr: string; error?: Error }> {
+function runPi(
+	args: string[],
+	timeout: number
+): Promise<{ stdout: string; stderr: string; code: number | null; signal: NodeJS.Signals | null; error?: Error }> {
 	return new Promise(resolve => {
 		const child = spawn("pi", args, {
 			cwd: projectRoot,
@@ -49,8 +55,8 @@ function runPi(args: string[], timeout: number): Promise<{ stdout: string; stder
 		child.stderr?.on("data", d => {
 			stderr += d.toString()
 		})
-		child.on("error", err => resolve({ stdout, stderr, error: err }))
-		child.on("close", () => resolve({ stdout, stderr }))
+		child.on("error", err => resolve({ stdout, stderr, code: null, signal: null, error: err }))
+		child.on("close", (code, signal) => resolve({ stdout, stderr, code, signal }))
 	})
 }
 
@@ -69,13 +75,20 @@ async function runCase(c: TestCase, provider: string): Promise<CaseResult> {
 		.map(([k, v]) => `${k}=${typeof v === "string" ? `'${v}'` : JSON.stringify(v)}`)
 		.join(" ")
 
+	const expected =
+		c.tool === "search" && c.args["fetchResult"] === true
+			? `The output must be a numbered result list with ${c.args["limit"] ?? 5} results, each with title and URL. If a Markdown section is present, it must contain meaningful fetched page content. It must not be an error.`
+			: c.tool === "search"
+				? `The output must be a numbered result list with ${c.args["limit"] ?? 5} results, each with title, URL, and optional description. It must not be an error.`
+				: "The output must be fetched markdown with meaningful page content. It must not be an error. Do not require the same headings, links, or article text as the reference."
+
 	const testPrompt = [
 		`Read the file test/references/ref-${c.id}.txt. Then use ${c.tool === "search" ? "web_search" : "web_fetch"} with ${argsStr}.`,
-		`Compare the tool output to the reference. Focus on FORMATTING and STRUCTURE (numbered list, titles, URLs, descriptions). Different providers return different content for the same query — this is expected and OK. Minor structural differences (e.g., extra Markdown section, varying description length) are also acceptable. If the output is a properly formatted result list or fetch output with meaningful content, reply with exactly: OK`,
-		`Otherwise reply with exactly: FAIL: <brief reason>`
+		`Compare formatting and structure against the reference, not provider-specific content. ${expected}`,
+		`Reply with exactly: OK or FAIL: <brief reason>`
 	].join("\n")
 
-	const { stdout, stderr, error } = await runPi(
+	const { stdout, stderr, code, signal, error } = await runPi(
 		[
 			"-p",
 			"--model",
@@ -97,6 +110,11 @@ async function runCase(c: TestCase, provider: string): Promise<CaseResult> {
 	)
 
 	if (error) return { caseId: c.id, provider, status: "ERROR", output: error.message }
+	if (signal) return { caseId: c.id, provider, status: "ERROR", output: `pi exited by signal ${signal}` }
+	if (code !== 0) {
+		const debug = stderr.trim() || stdout.trim() || "no output"
+		return { caseId: c.id, provider, status: "ERROR", output: `pi exited with code ${code}: ${debug}` }
+	}
 
 	const trimmed = stdout.trim()
 	const { verdict, tail } = parseVerdict(trimmed)
@@ -145,7 +163,7 @@ for (const c of cases) {
 
 // Clean up temp config
 try {
-	writeFileSync(configPath, "{}\n", "utf-8")
+	rmSync(configPath, { force: true })
 } catch {
 	/* ok */
 }

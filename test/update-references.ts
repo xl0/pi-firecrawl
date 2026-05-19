@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { fetchImpl, searchImpl } from "../extensions/web-tools/index.js"
 import type { WebToolsConfig } from "../extensions/web-tools/providers/types.js"
+import { loadTestEnv } from "./env.js"
 
 interface TestCase {
 	id: string
@@ -9,6 +10,8 @@ interface TestCase {
 	args: Record<string, unknown>
 	providers: string[]
 }
+
+loadTestEnv(join(import.meta.dirname, ".env"))
 
 const cases = JSON.parse(readFileSync(join(import.meta.dirname, "cases.json"), "utf-8")) as TestCase[]
 
