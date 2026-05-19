@@ -1,0 +1,16 @@
+1. History of artificial intelligence
+   https://en.wikipedia.org/wiki/History_of_artificial_intelligence
+   - The history of artificial intelligence (AI) spans from ancient myths about intelligent artificial beings to modern computational approaches.
+- Key milestones:
+  - Early roots in logic, formal reasoning, and dreams of electronic brains as computers emerged in the 1940s with programmable digital mac…
+
+2. History of artificial intelligence | Dates, Advances, Alan Turing, ELIZA ...
+   https://www.britannica.com/science/history-of-artificial-intelligence
+   Summary: The Britannica overview traces artificial intelligence (AI) from its mid-20th-century beginnings to modern developments. Key milestones include:
+
+- Alan Turing (1930s–1940s): laid foundational concepts with the universal Turing machine; in 1947 he discussed machines learning from experience…
+
+3. What is the history of AI? | Cloudflare
+   https://www.cloudflare.com/learning/ai/history-of-ai/
+   Summary:
+The history of artificial intelligence (AI) spans centuries of precursors to modern computing, with formal AI terminology emerging in 1955. Key milestones include early neural networks (SNARC, perceptron), Turing’s 1950 paper and the Turing test, and the birth of AI as a field. The field ex…

@@ -1,3 +1,4 @@
 node_modules/
 bun.lock
-.pi/settings.json
+.pi/
+test/.env

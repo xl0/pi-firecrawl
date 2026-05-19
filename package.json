@@ -20,6 +20,8 @@
 	"scripts": {
 		"typecheck": "tsgo --noEmit",
 		"check": "bun run typecheck && bun run biome:check",
+		"test": "bun run test/run.ts",
+		"test:update": "bun run test/update-references.ts",
 		"release": "bun publish --access public",
 		"lint": "biome lint .",
 		"format": "biome format --write .",
