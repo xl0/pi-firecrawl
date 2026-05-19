@@ -2,11 +2,13 @@
 
 Maintain 2 important files in sync with the codebase:
 
-- `CODE.md`: An in-depth summary of the current state of the codebase.
-- `PLAN.md`: Contains both high-level birds eye plan, as well as a lower-level todo list. Use [x] boxes to mark items.
+- `CODE.md`: Literal current state of the codebase: what files/modules exist and what they do. No planned features, roadmap, or intended architecture unless already implemented. Not a changelog.
+- `PLAN.md`: High-level plan, technical decisions, roadmap, and todo lists under the relevant sections. Use `[x]` boxes to mark completed decisions/items. Keep it a plan, not a changelog.
 
-IMPORTANT: At the start of each conversation, always fully read `CODE.md`. You may read `PLAN.md` when relevant to the task.
-Update the files as you go, keep the updates concise. Not a changelog - content reflects the current state, not history.
+IMPORTANT: At the start of each conversation, always fully read `CODE.md`. Read `PLAN.md` when relevant to the task.
+Update the files as you go, keep the updates concise. `CODE.md` reflects current code only; `PLAN.md` reflects intended work.
+
+When work is implemented, compact `PLAN.md`: mark completed todos, remove obsolete implementation-detail todos, and replace long completed task lists with a short statement of the next useful plan. Do not accumulate history or duplicate what `CODE.md` already states.
 
 # Guidelines
 
