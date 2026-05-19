@@ -12,7 +12,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/cases.json` — 3 query-pattern cases (`search`, `search-fetch`, `fetch`), each tested against all applicable providers. `search`/`search-fetch` run on firecrawl+exa+tavily+brave; `fetch` runs on firecrawl+exa+tavily (brave is search-only). Queries are stable topics to avoid content drift.
 `test/references/ref-*.txt` — shared reference snapshots, generated from Tavily (provider-agnostic). All providers compare against the same refs; LLM judges formatting/structure, not content.
 `test/.env` — API keys for providers (gitignored).
-`test/run.ts` — groups cases by provider, runs each group in parallel via `spawn("pi", ...)`. Per-group provider config written to `.pi/xl0-web-tools.json`. LLM compares tool output to reference, replies OK/FAIL. Summary at end, exits non-zero on failures.
+`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)`. Per-provider config written to `.pi/xl0-web-tools.json`. LLM compares tool output to reference, replies OK/FAIL. Summary at end, exits non-zero on failures.
 `test/update-references.ts` — imports `searchImpl`/`fetchImpl` directly, calls providers with keys from `test/.env`, saves `formatSearchOutput` result as reference.
 
 ## Extension
