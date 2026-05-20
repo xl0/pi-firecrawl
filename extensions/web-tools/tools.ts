@@ -2,7 +2,7 @@ import { StringEnum } from "@earendil-works/pi-ai"
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent"
 import { Text } from "@earendil-works/pi-tui"
 import { Type } from "typebox"
-import { getProvider, isImageEnabled, loadConfig } from "./config.js"
+import { getImageMaxSize, getProvider, isImageEnabled, isImageResizeEnabled, loadConfig } from "./config.js"
 import { asErrorMessage } from "./format.js"
 import { DEFAULT_MAX_IMAGE_BYTES, imageImpl, MAX_IMAGE_BYTES } from "./image.js"
 import { renderTextResult } from "./render.js"
@@ -153,12 +153,23 @@ export function registerWebTools(pi: ExtensionAPI) {
 		},
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			try {
-				if (!isImageEnabled(loadConfig(ctx.cwd))) throw new Error("web_image is disabled. Enable it via /web-tools.")
+				const config = loadConfig(ctx.cwd)
+				if (!isImageEnabled(config)) throw new Error("web_image is disabled. Enable it via /web-tools.")
 				onUpdate?.({
 					content: [{ type: "text", text: `Fetching image: ${params.url}` }],
 					details: undefined as unknown
 				})
-				return await imageImpl(params, signal, onUpdate)
+				return await imageImpl(
+					{
+						url: params.url,
+						timeout: params.timeout,
+						maxBytes: params.maxBytes,
+						resize: isImageResizeEnabled(config),
+						maxSize: getImageMaxSize(config)
+					},
+					signal,
+					onUpdate
+				)
 			} catch (error) {
 				return {
 					content: [{ type: "text", text: `Web image failed: ${asErrorMessage(error)}` }],

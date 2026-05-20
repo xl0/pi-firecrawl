@@ -1,4 +1,4 @@
-import { formatDimensionNote, resizeImage } from "@earendil-works/pi-coding-agent"
+import { formatDimensionNote, type ResizedImage, resizeImage } from "@earendil-works/pi-coding-agent"
 import { getImageDimensions } from "@earendil-works/pi-tui"
 import { DEFAULT_TIMEOUT_MS } from "./config.js"
 import type { ToolResult } from "./tool-impl.js"
@@ -64,7 +64,13 @@ async function fetchImageContent(
 }
 
 export async function imageImpl(
-	params: { url: string; timeout?: number; maxBytes?: number },
+	params: {
+		url: string
+		timeout?: number | undefined
+		maxBytes?: number | undefined
+		resize?: boolean | undefined
+		maxSize?: number | undefined
+	},
 	signal?: AbortSignal,
 	onUpdate?: (result: ToolResult) => void
 ): Promise<ToolResult> {
@@ -75,7 +81,12 @@ export async function imageImpl(
 	if (signal?.aborted) throw new Error("Image fetch cancelled")
 
 	const originalDimensions = getImageDimensions(image.data, image.mimeType) ?? undefined
-	const resized = await resizeImage({ type: "image", data: image.data, mimeType: image.mimeType })
+	const shouldResize = params.resize !== false
+	const maxSize = params.maxSize ?? 2000
+	const resizeOpts: { maxWidth: number; maxHeight: number; maxBytes: number } = { maxWidth: maxSize, maxHeight: maxSize, maxBytes }
+	const resized = shouldResize
+		? ((await resizeImage({ type: "image", data: image.data, mimeType: image.mimeType }, resizeOpts)) as ResizedImage | null)
+		: null
 	if (!resized) {
 		const note = `Fetched image [${image.mimeType}]\n[Image omitted: could not be decoded or resized below the inline image size limit.]`
 		const result: ToolResult = {

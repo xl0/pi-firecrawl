@@ -26,6 +26,6 @@ export interface Provider {
 export interface WebToolsConfig {
 	webSearch?: { provider?: string; enabled?: boolean }
 	webFetch?: { provider?: string; enabled?: boolean }
-	webImage?: { enabled?: boolean }
+	webImage?: { enabled?: boolean; resize?: boolean; maxSize?: number }
 	webApiKeys?: Record<string, string>
 }

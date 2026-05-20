@@ -32,6 +32,14 @@ export function isImageEnabled(config: WebToolsConfig): boolean {
 	return config.webImage?.enabled !== false
 }
 
+export function isImageResizeEnabled(config: WebToolsConfig): boolean {
+	return config.webImage?.resize !== false
+}
+
+export function getImageMaxSize(config: WebToolsConfig): number {
+	return config.webImage?.maxSize ?? 2000
+}
+
 function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): string {
 	if (type === "search" && !isSearchEnabled(config)) throw new Error("web_search is disabled. Enable it via /web-tools.")
 	if (type === "fetch" && !isFetchEnabled(config)) throw new Error("web_fetch is disabled. Enable it via /web-tools.")
