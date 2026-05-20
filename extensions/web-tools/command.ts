@@ -172,7 +172,6 @@ export function registerWebToolsCommand(pi: ExtensionAPI) {
 					handleInput: (data: string) => list.handleInput(data)
 				}
 			})
-			ctx.ui.notify("Config saved.", "info")
 		}
 	})
 }
