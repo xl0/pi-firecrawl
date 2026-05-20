@@ -2,8 +2,16 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join, resolve } from "node:path"
 import { type ImageContent, StringEnum, type TextContent } from "@earendil-works/pi-ai"
-import { type ExtensionAPI, formatDimensionNote, resizeImage, type Theme } from "@earendil-works/pi-coding-agent"
-import { getImageDimensions, Text } from "@earendil-works/pi-tui"
+import {
+	type ExtensionAPI,
+	ExtensionInputComponent,
+	formatDimensionNote,
+	getSelectListTheme,
+	getSettingsListTheme,
+	resizeImage,
+	type Theme
+} from "@earendil-works/pi-coding-agent"
+import { Container, getImageDimensions, SelectList, type SettingItem, SettingsList, Text } from "@earendil-works/pi-tui"
 import { Type } from "typebox"
 import { asErrorMessage, formatSearchOutput, stringify } from "./format.js"
 import { braveProvider } from "./providers/brave.js"
@@ -17,6 +25,7 @@ const DEFAULT_MAX_IMAGE_BYTES = 5_000_000
 const MAX_IMAGE_BYTES = 20_000_000
 const SUPPORTED_IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"])
 const COLLAPSED_RESULT_LINES = 6
+const DISABLED_LABEL = "Disabled"
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -29,9 +38,24 @@ const providers: Record<string, Provider> = {
 
 const providerNames = Object.keys(providers)
 
+function isSearchEnabled(config: WebToolsConfig): boolean {
+	return config.webSearch?.enabled !== false
+}
+
+function isFetchEnabled(config: WebToolsConfig): boolean {
+	return config.webFetch?.enabled !== false
+}
+
+function isImageEnabled(config: WebToolsConfig): boolean {
+	return config.webImage?.enabled !== false
+}
+
 function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): string {
+	if (type === "search" && !isSearchEnabled(config)) throw new Error("web_search is disabled. Enable it via /web-tools.")
+	if (type === "fetch" && !isFetchEnabled(config)) throw new Error("web_fetch is disabled. Enable it via /web-tools.")
+
 	const direct = type === "search" ? config.webSearch?.provider : config.webFetch?.provider
-	const fallback = type === "fetch" ? config.webSearch?.provider : undefined
+	const fallback = type === "fetch" && isSearchEnabled(config) ? config.webSearch?.provider : undefined
 	const id = direct || fallback
 	if (!id) {
 		const hint = type === "search" ? "webSearch.provider" : "webFetch.provider"
@@ -86,6 +110,53 @@ function readConfigFile(path: string): WebToolsConfig {
 function writeConfigFile(path: string, config: WebToolsConfig): void {
 	mkdirSync(resolve(path, ".."), { recursive: true })
 	writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`, "utf-8")
+}
+
+function applyToolConfig(pi: ExtensionAPI, config: WebToolsConfig): void {
+	const active = new Set(pi.getActiveTools())
+	if (isSearchEnabled(config)) active.add("web_search")
+	else active.delete("web_search")
+	if (isFetchEnabled(config)) active.add("web_fetch")
+	else active.delete("web_fetch")
+	if (isImageEnabled(config)) active.add("web_image")
+	else active.delete("web_image")
+	pi.setActiveTools([...active])
+}
+
+function providerLabel(id: string | undefined): string {
+	return id ? (providers[id]?.label ?? id) : "(not set)"
+}
+
+function providerIdFromLabel(label: string): string | undefined {
+	return providerNames.find(id => providers[id]?.label === label)
+}
+
+function maskApiKey(key: string | undefined): string {
+	if (!key) return "(not set)"
+	const maskLength = Math.max(5, key.length - 8)
+	const visible = Math.max(0, key.length - maskLength)
+	const startLength = Math.min(4, Math.ceil(visible / 2))
+	const endLength = Math.min(4, visible - startLength)
+	return `${key.slice(0, startLength)}${"*".repeat(maskLength)}${endLength > 0 ? key.slice(-endLength) : ""}`
+}
+
+function providerSubmenu(title: string, labels: string[], currentValue: string, done: (selectedValue?: string) => void) {
+	const container = new Container()
+	container.addChild(new Text(title, 1, 1))
+	const list = new SelectList(
+		labels.map(label => ({ value: label, label })),
+		Math.min(labels.length, 10),
+		getSelectListTheme()
+	)
+	list.setSelectedIndex(Math.max(0, labels.indexOf(currentValue)))
+	list.onSelect = item => done(item.value)
+	list.onCancel = () => done(undefined)
+	container.addChild(list)
+	return {
+		render: (width: number) => container.render(width),
+		invalidate: () => container.invalidate(),
+		handleInput: (data: string) => list.handleInput(data)
+	}
 }
 
 async function fetchImageContent(
@@ -310,6 +381,10 @@ export async function imageImpl(
 // ── Extension ───────────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
+	pi.on("session_start", async (_event, ctx) => {
+		applyToolConfig(pi, loadConfig(ctx.cwd))
+	})
+
 	pi.registerTool({
 		name: "web_search",
 		label: "Web Search",
@@ -452,8 +527,9 @@ export default function (pi: ExtensionAPI) {
 			text.setText(`${theme.fg("toolTitle", theme.bold("web_image "))}${theme.fg("muted", args.url)}${suffix}`)
 			return text
 		},
-		async execute(_toolCallId, params, signal, onUpdate) {
+		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			try {
+				if (!isImageEnabled(loadConfig(ctx.cwd))) throw new Error("web_image is disabled. Enable it via /web-tools.")
 				onUpdate?.({
 					content: [{ type: "text", text: `Fetching image: ${params.url}` }],
 					details: undefined as unknown
@@ -470,7 +546,7 @@ export default function (pi: ExtensionAPI) {
 	})
 
 	pi.registerCommand("web-tools", {
-		description: "Configure web search and fetch providers",
+		description: "Configure web search, fetch, and image tools",
 		async handler(_args, ctx) {
 			if (!ctx.hasUI) {
 				ctx.ui.notify("The /web-tools command is only available in interactive mode.", "warning")
@@ -485,66 +561,90 @@ export default function (pi: ExtensionAPI) {
 				: resolve(ctx.cwd, ".pi", "xl0-web-tools.json")
 
 			const config = readConfigFile(configPath)
-
-			while (true) {
-				const searchId = config.webSearch?.provider ?? "(not set)"
-				const fetchId = config.webFetch?.provider ?? "(not set)"
-				const keysInfo =
-					Object.entries(config.webApiKeys ?? {})
-						.map(([k, v]) => `${k}: ${v ? "****" : "(empty)"}`)
-						.join(", ") || "none"
-
-				ctx.ui.notify(`Search: ${searchId} | Fetch: ${fetchId} | Keys: ${keysInfo}`, "info")
-
-				const menuItems = [
-					`Set search provider (current: ${searchId})`,
-					`Set fetch provider (current: ${fetchId})`,
-					...providerNames.map(id => `Set API key for ${providers[id]?.label ?? id}`),
-					"Done"
-				]
-				const action = await ctx.ui.select("What to configure?", menuItems)
-				if (action === undefined) return
-
-				if (action === "Done") {
-					writeConfigFile(configPath, config)
-					ctx.ui.notify("Config saved.", "info")
-					return
-				}
-
-				if (action.includes("search provider")) {
-					const choice = await ctx.ui.select(
-						"Select search provider:",
-						providerNames.map(id => providers[id]?.label ?? id)
-					)
-					if (choice === undefined) continue
-					const providerId = providerNames.find(id => providers[id]?.label === choice)
-					if (providerId) config.webSearch = { provider: providerId }
-				} else if (action.includes("fetch provider")) {
-					const choice = await ctx.ui.select(
-						"Select fetch provider:",
-						providerNames.filter(id => providers[id]?.fetch).map(id => providers[id]?.label ?? id)
-					)
-					if (choice === undefined) continue
-					const providerId = providerNames.find(id => providers[id]?.label === choice)
-					if (providerId) config.webFetch = { provider: providerId }
-				} else {
-					const keyEntry = providerNames.find(id => action.includes(providers[id]?.label ?? id))
-					if (keyEntry) await setApiKey(ctx, config, keyEntry)
-				}
+			const save = () => {
+				writeConfigFile(configPath, config)
+				applyToolConfig(pi, loadConfig(ctx.cwd))
 			}
+
+			await ctx.ui.custom((_tui, theme, _keybindings, done) => {
+				const searchLabels = [DISABLED_LABEL, ...providerNames.map(id => providers[id]?.label ?? id)]
+				const fetchLabels = [DISABLED_LABEL, ...providerNames.filter(id => providers[id]?.fetch).map(id => providers[id]?.label ?? id)]
+				const items: SettingItem[] = [
+					{
+						id: "search",
+						label: "web_search",
+						currentValue: isSearchEnabled(config) ? providerLabel(config.webSearch?.provider) : DISABLED_LABEL,
+						description: "Search provider, or disabled to remove web_search from active tools.",
+						submenu: (currentValue, done) => providerSubmenu("Select search provider", searchLabels, currentValue, done)
+					},
+					{
+						id: "fetch",
+						label: "web_fetch",
+						currentValue: isFetchEnabled(config) ? providerLabel(config.webFetch?.provider) : DISABLED_LABEL,
+						description: "Fetch provider, or disabled to remove web_fetch from active tools.",
+						submenu: (currentValue, done) => providerSubmenu("Select fetch provider", fetchLabels, currentValue, done)
+					},
+					{
+						id: "image",
+						label: "web_image",
+						currentValue: isImageEnabled(config) ? "enabled" : "disabled",
+						description: "Enable or disable direct image URL fetching.",
+						values: ["enabled", "disabled"]
+					},
+					...providerNames.map(id => ({
+						id: `key:${id}`,
+						label: `${providers[id]?.label ?? id} API key`,
+						currentValue: maskApiKey(config.webApiKeys?.[id]),
+						description: `Set API key for ${providers[id]?.label ?? id}.`,
+						submenu: (_currentValue: string, done: (selectedValue?: string) => void) =>
+							new ExtensionInputComponent(
+								`API key for ${providers[id]?.label ?? id}${config.webApiKeys?.[id] ? ` (current: ${maskApiKey(config.webApiKeys[id])})` : ""}:`,
+								"Enter API key",
+								value => {
+									config.webApiKeys ??= {}
+									config.webApiKeys[id] = value
+									save()
+									done(maskApiKey(value))
+								},
+								() => done(undefined),
+								{ tui: _tui }
+							)
+					}))
+				]
+				const container = new Container()
+				container.addChild(new Text(theme.fg("accent", theme.bold("Web tools")), 1, 1))
+				const list = new SettingsList(
+					items,
+					Math.min(items.length, 12),
+					getSettingsListTheme(),
+					(id, newValue) => {
+						if (id === "search") {
+							if (newValue === DISABLED_LABEL) config.webSearch = { ...config.webSearch, enabled: false }
+							else {
+								const providerId = providerIdFromLabel(newValue)
+								if (providerId) config.webSearch = { provider: providerId, enabled: true }
+							}
+						} else if (id === "fetch") {
+							if (newValue === DISABLED_LABEL) config.webFetch = { ...config.webFetch, enabled: false }
+							else {
+								const providerId = providerIdFromLabel(newValue)
+								if (providerId) config.webFetch = { provider: providerId, enabled: true }
+							}
+						} else if (id === "image") {
+							config.webImage = { enabled: newValue === "enabled" }
+						}
+						save()
+					},
+					() => done(undefined)
+				)
+				container.addChild(list)
+				return {
+					render: (width: number) => container.render(width),
+					invalidate: () => container.invalidate(),
+					handleInput: (data: string) => list.handleInput(data)
+				}
+			})
+			ctx.ui.notify("Config saved.", "info")
 		}
 	})
-}
-
-async function setApiKey(
-	ctx: { ui: { input: (title: string, placeholder: string) => Promise<string | undefined> } },
-	config: WebToolsConfig,
-	providerId: string
-) {
-	const current = config.webApiKeys?.[providerId]
-	const label = providers[providerId]?.label ?? providerId
-	const key = await ctx.ui.input(`API key for ${label}${current ? " (current: ****)" : ""}:`, "Enter API key")
-	if (key === undefined) return
-	config.webApiKeys ??= {}
-	config.webApiKeys[providerId] = key
 }
