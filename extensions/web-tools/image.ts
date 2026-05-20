@@ -33,7 +33,7 @@ async function fetchImageContent(
 		const contentLength = res.headers.get("content-length")
 		const parsedContentLength = contentLength ? Number(contentLength) : undefined
 		if (parsedContentLength !== undefined && parsedContentLength > opts.maxBytes) {
-			throw new Error(`Image too large: ${contentLength} bytes exceeds ${opts.maxBytes}`)
+			throw new Error(`Image too large: ${parsedContentLength} bytes exceeds ${opts.maxBytes}`)
 		}
 		if (!res.body) throw new Error("Image response had no body")
 

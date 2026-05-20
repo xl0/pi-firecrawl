@@ -83,6 +83,9 @@ export function loadConfig(cwd: string): WebToolsConfig {
 	return {
 		...global,
 		...project,
+		webSearch: { ...global.webSearch, ...project.webSearch },
+		webFetch: { ...global.webFetch, ...project.webFetch },
+		webImage: { ...global.webImage, ...project.webImage },
 		webApiKeys: { ...global.webApiKeys, ...project.webApiKeys }
 	}
 }
