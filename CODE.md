@@ -18,16 +18,21 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/image.ts` — direct external-network smoke test for `imageImpl`: small PNG from httpbin remains unresized; large Picsum JPEG is resized to Pi inline limits.
 
 ## Extension
-`extensions/web-tools/index.ts` registers three tools and one command.
-Exports `searchImpl`, `fetchImpl`, and `imageImpl` standalone functions for testing. Search/fetch take `WebToolsConfig` + params + optional signal/onUpdate and call provider methods. Image takes direct URL params and downloads the image itself. All return `{content, details}`.
+`extensions/web-tools/index.ts` is the Pi entrypoint. It applies enabled-tool config on `session_start`, registers tools via `tools.ts`, registers `/web-tools` via `command.ts`, and re-exports `searchImpl`, `fetchImpl`, `imageImpl`, and `ToolResult` for tests.
 
+- `tools.ts`: registers `web_search`, `web_fetch`, and `web_image`; owns tool schemas, prompt snippets/guidelines, call/result rendering hooks, and execute wrappers.
+- `tool-impl.ts`: exports standalone `searchImpl`/`fetchImpl`. Search/fetch take `WebToolsConfig` + params + optional signal/onUpdate and call provider methods. Both return `{content, details}`.
+- `image.ts`: exports standalone `imageImpl`; downloads direct image URLs without provider config/API keys. Supports PNG/JPEG/WebP/GIF, default 5 MB download cap, maximum 20 MB, optional timeout/maxBytes. Downloaded images are passed through Pi's `resizeImage()` before returning to the LLM; if decoding/resizing cannot fit inline limits, the image is omitted with a note. Metadata lives in `details`; Pi's generic image-content renderer displays the image block.
+- `command.ts`: `/web-tools` SettingsList-based interactive command to configure providers, tool enabled states, and API keys. Tool enabled states are applied immediately through Pi `setActiveTools()`.
+- `render.ts`: shared collapsed text result renderer for search/fetch.
+
+Tools:
 - `web_search`: web/news/images search dispatching to configured search provider. Result rendering shows the first few output lines until expanded.
 - `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Public options: `url`, optional `waitFor`, optional `timeout`, optional `includeMetadata`. Tool call rendering shows supplied non-default args. Result rendering shows the first few output lines until expanded.
-- `web_image`: fetch a direct image URL without provider config/API keys and return a short text note plus one image content block, matching Pi `read` image behavior. Supports PNG/JPEG/WebP/GIF, default 5 MB download cap, maximum 20 MB, optional timeout/maxBytes. Downloaded images are passed through Pi's `resizeImage()` before returning to the LLM; if decoding/resizing cannot fit inline limits, the image is omitted with a note. Metadata lives in `details`; Pi's generic image-content renderer displays the image block.
-- `/web-tools`: SettingsList-based interactive command to configure providers, tool enabled states, and API keys. Tool enabled states are applied immediately through Pi `setActiveTools()`.
+- `web_image`: fetch a direct image URL and return a short text note plus one image content block, matching Pi `read` image behavior.
 
 ## Provider dispatch
-Search and fetch providers configurable independently in `xl0-web-tools.json` (`~/.pi/agent/` global, `.pi/` project, project overrides). `webSearch.enabled`, `webFetch.enabled`, and `webImage.enabled` default to true; setting any to false removes the corresponding tool from Pi's active tool list and gates execution. If only `webSearch.provider` is set and search is enabled, `webFetch` falls back to it when the provider implements fetch.
+`extensions/web-tools/config.ts` owns provider registry/config helpers. Search and fetch providers are configurable independently in `xl0-web-tools.json` (`~/.pi/agent/` global, `.pi/` project, project overrides). `webSearch.enabled`, `webFetch.enabled`, and `webImage.enabled` default to true; setting any to false removes the corresponding tool from Pi's active tool list and gates execution. If only `webSearch.provider` is set and search is enabled, `webFetch` falls back to it when the provider implements fetch.
 
 API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDER_ENV_KEY]` → error.
 
@@ -44,7 +49,7 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 
 ### Exa (`providers/exa.ts`)
 - Search: POST `/search` with query, numResults, type:"auto", contents:{summary:true}. Source `web`→no category filter, `news`→category:"news", `images`→unsupported (no filter).
-- Search result descriptions use Exa's semantic `summary` field (abstractive, query-tailored page summaries).
+- Search result descriptions use Exa's semantic `summary` field (abstractive, query-tailored page summaries) with a leading `Summary:` label stripped if Exa returns one.
 - Fetch: POST `/contents` with ids:[url], text:true. `waitFor` is ignored for Exa; `web_fetch` returns a warning if the caller supplies it.
 - Auth: `x-api-key` header.
 - Results normalized from `results[]` array. Fetch checks `statuses` for per-URL errors.

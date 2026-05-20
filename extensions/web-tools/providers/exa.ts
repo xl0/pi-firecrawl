@@ -35,6 +35,10 @@ function sourceToCategory(source?: string): string | undefined {
 	return undefined
 }
 
+function stripSummaryLabel(text: string): string {
+	return text.replace(/^Summary:\s*/i, "")
+}
+
 function fetchJson(url: string, body: unknown, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
 	return requestJson(
 		"Exa",
@@ -75,7 +79,7 @@ export const exaProvider: Provider = {
 				title: item.title || "Untitled",
 				url: item.url
 			}
-			if (item.summary) r.description = item.summary
+			if (item.summary) r.description = stripSummaryLabel(item.summary)
 			return r
 		})
 
