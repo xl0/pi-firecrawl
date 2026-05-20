@@ -82,10 +82,11 @@ export async function imageImpl(
 
 	const originalDimensions = getImageDimensions(image.data, image.mimeType) ?? undefined
 	const shouldResize = params.resize !== false
-	const maxSize = params.maxSize ?? 2000
-	const resizeOpts: { maxWidth: number; maxHeight: number; maxBytes: number } = { maxWidth: maxSize, maxHeight: maxSize, maxBytes }
 	const resized = shouldResize
-		? ((await resizeImage({ type: "image", data: image.data, mimeType: image.mimeType }, resizeOpts)) as ResizedImage | null)
+		? ((await resizeImage(
+				{ type: "image", data: image.data, mimeType: image.mimeType },
+				{ maxWidth: params.maxSize ?? 2000, maxHeight: params.maxSize ?? 2000 }
+			)) as ResizedImage | null)
 		: null
 	if (!resized) {
 		const note = `Fetched image [${image.mimeType}]\n[Image omitted: could not be decoded or resized below the inline image size limit.]`
