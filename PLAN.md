@@ -6,7 +6,7 @@
 - Add standalone `web_image` for URL → LLM image content; no provider/API key needed.
 - Search and fetch providers configurable independently.
 - Persist config in `xl0-web-tools.json` (`~/.pi/agent/` + project `.pi/`, project overrides global).
-- Register `/web-tools` for interactive provider/API-key config.
+- Register `/web-tools` for interactive provider/API-key/tool-enabled config.
 - Providers use plain `fetch()`; zero runtime deps beyond Pi peer deps.
 - API key resolution: `webApiKeys.<providerId>` → provider env var → error.
 - No defaults/no backwards compat: missing config errors with guidance.
@@ -46,8 +46,9 @@ interface Provider {
 ## Config shape
 ```json
 {
-  "webSearch": { "provider": "exa" },
-  "webFetch":  { "provider": "firecrawl" },
+  "webSearch": { "provider": "exa", "enabled": true },
+  "webFetch":  { "provider": "firecrawl", "enabled": true },
+  "webImage":  { "enabled": true },
   "webApiKeys": {
     "firecrawl": "fc-...",
     "exa": "...",
@@ -64,6 +65,7 @@ interface Provider {
 - Each provider normalizes API responses into `SearchResult[]` and exposes raw API response in `details`.
 - `format.ts` remains provider-agnostic.
 - `web_image` is intentionally URL-only. Provider image discovery can expose URLs later; `web_image` decides which URL becomes actual image context.
+- Tool enabled flags default to true. `/web-tools` applies changes immediately via Pi `setActiveTools()`, so disabled tools leave the active tool list and prompt without reload.
 
 ## Test plan
 - Keep LLM-judged integration tests as smoke coverage over live providers.
@@ -73,7 +75,7 @@ interface Provider {
 - [x] Package renamed, zero runtime deps, old extension removed, checks pass.
 - [x] `searchImpl`/`fetchImpl` extracted for testing.
 - [x] Firecrawl, Exa, Tavily, Brave providers implemented.
-- [x] `/web-tools` provider-driven config command implemented.
+- [x] `/web-tools` provider-driven config command implemented with tool enable/disable controls.
 - [x] Integration tests: 10 cases pass (3 firecrawl + 3 exa + 3 tavily + 1 brave).
 - [x] Test harness loads `test/.env`, avoids config races, runs Pi with `--no-session`, removes temp config in `finally`, parses exact final verdicts, and reference updates exit non-zero on failures.
 - [x] Provider HTTP timeout/error handling deduplicated in `providers/http.ts`; README provider list updated.

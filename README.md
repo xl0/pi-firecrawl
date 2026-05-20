@@ -21,8 +21,9 @@ Run `/web-tools` in Pi to configure providers interactively, or create
 
 ```json
 {
-  "webSearch": { "provider": "firecrawl" },
-  "webFetch":  { "provider": "firecrawl" },
+  "webSearch": { "provider": "firecrawl", "enabled": true },
+  "webFetch":  { "provider": "firecrawl", "enabled": true },
+  "webImage":  { "enabled": true },
   "webApiKeys": {
     "firecrawl": "fc-...",
     "exa": "...",
@@ -35,7 +36,8 @@ Run `/web-tools` in Pi to configure providers interactively, or create
 API keys can also be set via environment variables: `FIRECRAWL_API_KEY`, `EXA_API_KEY`, `TAVILY_API_KEY`, `BRAVE_API_KEY`.
 
 Search and fetch can use different providers. If only `webSearch.provider` is set,
-`web_fetch` falls back to it when that provider supports fetch.
+`web_fetch` falls back to it when that provider supports fetch. Set `enabled:false`
+on `webSearch`, `webFetch`, or `webImage` to remove that tool from Pi's active tool list.
 
 `waitFor` is provider-specific: Firecrawl supports it as an extra pre-capture delay; Exa and Tavily ignore it and `web_fetch` returns a warning if supplied.
 
