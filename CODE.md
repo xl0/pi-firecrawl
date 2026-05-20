@@ -29,7 +29,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 Tools:
 - `web_search`: web/news/images search dispatching to configured search provider. Result rendering shows the first few output lines until expanded.
 - `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Public options: `url`, optional `waitFor`, optional `timeout`, optional `includeMetadata`. Tool call rendering shows supplied non-default args. Result rendering shows the first few output lines until expanded.
-- `web_image`: fetch a direct image URL and return a short text note plus one image content block, matching Pi `read` image behavior.
+- `web_image`: fetch a direct image URL and return a short text note plus one image content block, matching Pi `read` image behavior. Resizing is controlled by config (`webImage.resize`, default true) and max longest side (`webImage.maxSize`, default 2000 px).
 
 ## Provider dispatch
 `extensions/web-tools/config.ts` owns provider registry/config helpers. Search and fetch providers are configurable independently in `xl0-web-tools.json` (`~/.pi/agent/` global, `.pi/` project, project overrides). `webSearch.enabled`, `webFetch.enabled`, and `webImage.enabled` default to true; setting any to false removes the corresponding tool from Pi's active tool list and gates execution. If only `webSearch.provider` is set and search is enabled, `webFetch` falls back to it when the provider implements fetch.

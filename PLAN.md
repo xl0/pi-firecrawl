@@ -39,6 +39,12 @@ extensions/web-tools/
 - [x] Stabilize `search-fetch` query (`NIST quantum computing explained`) for deterministic first-result fetch.
 - [x] All tests pass (10/10 integration + image smoke).
 
+## Image resize config
+- [x] Add `webImage.resize` (default true) and `webImage.maxSize` (default 2000 px) to `WebToolsConfig`.
+- [x] Wire config into `imageImpl` and `tools.ts` execute wrapper.
+- [x] Add `/web-tools` UI entries for resize toggle and max-size input.
+- [x] Verify with `bun run check` and tests.
+
 ## Shared types
 ```ts
 interface SearchResult {

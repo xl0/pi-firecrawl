@@ -5,8 +5,10 @@ import { Container, SelectList, type SettingItem, SettingsList, Text } from "@ea
 import {
 	applyToolConfig,
 	DISABLED_LABEL,
+	getImageMaxSize,
 	isFetchEnabled,
 	isImageEnabled,
+	isImageResizeEnabled,
 	isSearchEnabled,
 	loadConfig,
 	maskApiKey,
@@ -84,6 +86,37 @@ export function registerWebToolsCommand(pi: ExtensionAPI) {
 						description: "Enable or disable direct image URL fetching.",
 						values: ["enabled", "disabled"]
 					},
+					{
+						id: "image-resize",
+						label: "Resize images",
+						currentValue: isImageResizeEnabled(config) ? "enabled" : "disabled",
+						description: "Resize fetched images to fit within the max size limit.",
+						values: ["enabled", "disabled"]
+					},
+					{
+						id: "image-max-size",
+						label: "Max image size",
+						currentValue: String(getImageMaxSize(config)),
+						description: "Maximum longest side in pixels for resized images.",
+						submenu: (_currentValue: string, done: (selectedValue?: string) => void) =>
+							new ExtensionInputComponent(
+								"Max image size (px):",
+								"Enter size",
+								value => {
+									const n = Number(value)
+									if (!Number.isFinite(n) || n < 1) {
+										done(undefined)
+										return
+									}
+									config.webImage ??= {}
+									config.webImage.maxSize = n
+									save()
+									done(String(n))
+								},
+								() => done(undefined),
+								{ tui: _tui }
+							)
+					},
 					...providerNames.map(id => ({
 						id: `key:${id}`,
 						label: `${providers[id]?.label ?? id} API key`,
@@ -124,7 +157,9 @@ export function registerWebToolsCommand(pi: ExtensionAPI) {
 								if (providerId) config.webFetch = { provider: providerId, enabled: true }
 							}
 						} else if (id === "image") {
-							config.webImage = { enabled: newValue === "enabled" }
+							config.webImage = { ...config.webImage, enabled: newValue === "enabled" }
+						} else if (id === "image-resize") {
+							config.webImage = { ...config.webImage, resize: newValue === "enabled" }
 						}
 						save()
 					},
