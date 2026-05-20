@@ -81,13 +81,53 @@ export async function imageImpl(
 	if (signal?.aborted) throw new Error("Image fetch cancelled")
 
 	const originalDimensions = getImageDimensions(image.data, image.mimeType) ?? undefined
-	const shouldResize = params.resize !== false
-	const resized = shouldResize
-		? ((await resizeImage(
-				{ type: "image", data: image.data, mimeType: image.mimeType },
-				{ maxWidth: params.maxSize ?? 2000, maxHeight: params.maxSize ?? 2000 }
-			)) as ResizedImage | null)
-		: null
+
+	if (params.resize === false) {
+		// Re-encode to sanitize, but don't downscale.
+		const validated = (await resizeImage(
+			{ type: "image", data: image.data, mimeType: image.mimeType },
+			{ maxWidth: Infinity, maxHeight: Infinity }
+		)) as ResizedImage | null
+		if (!validated) {
+			const note = `Fetched image [${image.mimeType}]\n[Image omitted: could not be decoded]`
+			const result: ToolResult = {
+				content: [{ type: "text" as const, text: note }],
+				details: {
+					url: params.url,
+					mimeType: image.mimeType,
+					bytes: image.bytes,
+					contentLength: image.contentLength
+				}
+			}
+			onUpdate?.(result)
+			return result
+		}
+		const dimensions = { widthPx: validated.width, heightPx: validated.height }
+		const note = `Fetched image [${validated.mimeType}]`
+		const result: ToolResult = {
+			content: [
+				{ type: "text" as const, text: note },
+				{ type: "image" as const, data: validated.data, mimeType: validated.mimeType }
+			],
+			details: {
+				url: params.url,
+				mimeType: validated.mimeType,
+				bytes: image.bytes,
+				contentLength: image.contentLength,
+				dimensions,
+				originalDimensions,
+				wasResized: validated.wasResized
+			}
+		}
+		onUpdate?.(result)
+		return result
+	}
+
+	const resized = (await resizeImage(
+		{ type: "image", data: image.data, mimeType: image.mimeType },
+		{ maxWidth: params.maxSize ?? 2000, maxHeight: params.maxSize ?? 2000 }
+	)) as ResizedImage | null
+
 	if (!resized) {
 		const note = `Fetched image [${image.mimeType}]\n[Image omitted: could not be decoded or resized below the inline image size limit.]`
 		const result: ToolResult = {
