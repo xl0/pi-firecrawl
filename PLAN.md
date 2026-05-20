@@ -14,7 +14,13 @@
 ## Architecture
 ```
 extensions/web-tools/
-  index.ts              - registers tools + command, reads config, dispatches, downloads image URLs for `web_image`
+  index.ts              - extension entrypoint; wires session config and registration modules; re-exports tool impls for tests
+  config.ts             - provider registry, config load/save, enabled-state application, API-key/provider resolution
+  tool-impl.ts          - standalone `searchImpl` and `fetchImpl`
+  image.ts              - standalone `imageImpl` and direct image download/resize handling
+  tools.ts              - `web_search`, `web_fetch`, `web_image` registration/render/execute wrappers
+  command.ts            - `/web-tools` interactive settings command
+  render.ts             - shared collapsed text result renderer
   format.ts             - formatSearchOutput, stringify, asErrorMessage
   providers/
     types.ts            - Provider/WebToolsConfig interfaces
@@ -24,6 +30,14 @@ extensions/web-tools/
     tavily.ts           - Tavily search + fetch
     brave.ts            - Brave search-only provider
 ```
+
+## Refactor plan
+- [x] Split large `extensions/web-tools/index.ts` by responsibility without behavior changes.
+- [x] Keep public test exports (`searchImpl`, `fetchImpl`, `imageImpl`) available from `index.ts`.
+- [x] Verify with `bun run check`.
+- [x] Fix Exa `Summary:` label stripping so search formatting matches reference.
+- [x] Stabilize `search-fetch` query (`NIST quantum computing explained`) for deterministic first-result fetch.
+- [x] All tests pass (10/10 integration + image smoke).
 
 ## Shared types
 ```ts
