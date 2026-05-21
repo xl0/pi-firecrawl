@@ -1,5 +1,5 @@
 {
-	"name": "@xl0/pi-web-tools",
+	"name": "@xl0/pi-lovely-web",
 	"version": "0.1.1",
 	"keywords": [
 		"pi-package",
@@ -12,10 +12,10 @@
 	],
 	"type": "module",
 	"license": "MIT",
-	"homepage": "https://github.com/xl0/pi-web-tools#readme",
+	"homepage": "https://github.com/xl0/pi-lovely-web#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/xl0/pi-web-tools.git"
+		"url": "git+https://github.com/xl0/pi-lovely-web.git"
 	},
 	"files": [
 		"extensions/",
@@ -34,21 +34,10 @@
 		"format:check": "biome format .",
 		"biome:check": "biome check ."
 	},
-	"dependencies": {},
-	"devDependencies": {
-		"@biomejs/biome": "^2.4.14",
-		"@earendil-works/pi-agent-core": "file:../pi-mono/packages/agent",
-		"@earendil-works/pi-ai": "file:../pi-mono/packages/ai",
-		"@earendil-works/pi-coding-agent": "file:../pi-mono/packages/coding-agent",
-		"@earendil-works/pi-tui": "file:../pi-mono/packages/tui",
-		"@typescript/native-preview": "^7.0.0-dev.20260502.1",
-		"bun-types": "^1.3.13",
-		"typescript": "^6.0.3"
-	},
 	"peerDependencies": {
-		"@earendil-works/pi-ai": "*",
-		"@earendil-works/pi-coding-agent": "*",
-		"@earendil-works/pi-tui": "*",
+		"@earendil-works/pi-ai": "^0.75.4",
+		"@earendil-works/pi-coding-agent": "^0.75.4",
+		"@earendil-works/pi-tui": "^0.75.4",
 		"typebox": "*"
 	},
 	"pi": {

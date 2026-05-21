@@ -1,23 +1,23 @@
-# @xl0/pi-web-tools
+# @xl0/pi-lovely-web
 
 Pi extension package providing `web_search`, `web_fetch`, and `web_image` tools backed by Firecrawl, Exa, Tavily, and Brave Search.
 
 ## Install
 
 ```bash
-pi install npm:@xl0/pi-web-tools
+pi install npm:@xl0/pi-lovely-web
 ```
 
 Or load without installing:
 
 ```bash
-pi -e npm:@xl0/pi-web-tools
+pi -e npm:@xl0/pi-lovely-web
 ```
 
 ## Configuration
 
-Run `/web-tools` in Pi to configure providers interactively, or create
-`~/.pi/agent/xl0-web-tools.json` (global) or `.pi/xl0-web-tools.json` (project):
+Run `/lovely-web` in Pi to configure providers interactively, or create
+`~/.pi/agent/xl0-pi-lovely-web.json` (global) or `.pi/xl0-pi-lovely-web.json` (project):
 
 ```json
 {

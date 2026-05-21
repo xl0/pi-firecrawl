@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { imageImpl } from "../extensions/web-tools/index.js"
+import { imageImpl } from "../extensions/lovely-web/index.js"
 
 function textContent(result: Awaited<ReturnType<typeof imageImpl>>): string {
 	return result.content.find(block => block.type === "text")?.text ?? ""

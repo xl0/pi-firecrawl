@@ -41,15 +41,15 @@ export function getImageMaxSize(config: WebToolsConfig): number {
 }
 
 function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): string {
-	if (type === "search" && !isSearchEnabled(config)) throw new Error("web_search is disabled. Enable it via /web-tools.")
-	if (type === "fetch" && !isFetchEnabled(config)) throw new Error("web_fetch is disabled. Enable it via /web-tools.")
+	if (type === "search" && !isSearchEnabled(config)) throw new Error("web_search is disabled. Enable it via /lovely-web.")
+	if (type === "fetch" && !isFetchEnabled(config)) throw new Error("web_fetch is disabled. Enable it via /lovely-web.")
 
 	const direct = type === "search" ? config.webSearch?.provider : config.webFetch?.provider
 	const fallback = type === "fetch" && isSearchEnabled(config) ? config.webSearch?.provider : undefined
 	const id = direct || fallback
 	if (!id) {
 		const hint = type === "search" ? "webSearch.provider" : "webFetch.provider"
-		throw new Error(`No ${type} provider configured. Set ${hint} via /web-tools.`)
+		throw new Error(`No ${type} provider configured. Set ${hint} via /lovely-web.`)
 	}
 	if (!providers[id]) throw new Error(`Unknown provider "${id}". Available: ${Object.keys(providers).join(", ")}.`)
 	return id
@@ -63,7 +63,7 @@ export function getProvider(type: "search" | "fetch", config: WebToolsConfig): P
 	if (!provider) throw new Error(`Provider "${id}" not found.`)
 	if (type === "fetch" && !provider.fetch) {
 		throw new Error(
-			`${provider.label} does not support fetching pages. Configure a fetch-capable provider (e.g. firecrawl, exa, tavily) via /web-tools.`
+			`${provider.label} does not support fetching pages. Configure a fetch-capable provider (e.g. firecrawl, exa, tavily) via /lovely-web.`
 		)
 	}
 	return provider as Provider & { fetch: NonNullable<Provider["fetch"]> }
@@ -74,12 +74,12 @@ export function resolveApiKey(provider: Provider, config: WebToolsConfig): strin
 	if (key) return key
 	const envKey = process.env[provider.envApiKey]
 	if (envKey) return envKey
-	throw new Error(`No API key for ${provider.label}. Set it via /web-tools or set the ${provider.envApiKey} environment variable.`)
+	throw new Error(`No API key for ${provider.label}. Set it via /lovely-web or set the ${provider.envApiKey} environment variable.`)
 }
 
 export function loadConfig(cwd: string): WebToolsConfig {
-	const global = readConfigFile(join(homedir(), ".pi", "agent", "xl0-web-tools.json"))
-	const project = readConfigFile(resolve(cwd, ".pi", "xl0-web-tools.json"))
+	const global = readConfigFile(join(homedir(), ".pi", "agent", "xl0-pi-lovely-web.json"))
+	const project = readConfigFile(resolve(cwd, ".pi", "xl0-pi-lovely-web.json"))
 	return {
 		...global,
 		...project,

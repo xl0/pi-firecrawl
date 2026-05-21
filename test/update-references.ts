@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { fetchImpl, searchImpl, type ToolResult } from "../extensions/web-tools/index.js"
-import type { WebToolsConfig } from "../extensions/web-tools/providers/types.js"
+import { fetchImpl, searchImpl, type ToolResult } from "../extensions/lovely-web/index.js"
+import type { WebToolsConfig } from "../extensions/lovely-web/providers/types.js"
 import { loadTestEnv } from "./env.js"
 
 interface TestCase {

@@ -8,7 +8,7 @@ import { DEFAULT_MAX_IMAGE_BYTES, imageImpl, MAX_IMAGE_BYTES } from "./image.js"
 import { renderTextResult } from "./render.js"
 import { fetchImpl, searchImpl } from "./tool-impl.js"
 
-export function registerWebTools(pi: ExtensionAPI) {
+export function registerLovelyWebTools(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "web_search",
 		label: "Web Search",
@@ -154,7 +154,7 @@ export function registerWebTools(pi: ExtensionAPI) {
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			try {
 				const config = loadConfig(ctx.cwd)
-				if (!isImageEnabled(config)) throw new Error("web_image is disabled. Enable it via /web-tools.")
+				if (!isImageEnabled(config)) throw new Error("web_image is disabled. Enable it via /lovely-web.")
 				onUpdate?.({
 					content: [{ type: "text", text: `Fetching image: ${params.url}` }],
 					details: undefined as unknown

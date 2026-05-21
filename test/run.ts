@@ -108,7 +108,7 @@ async function runCase(c: TestCase, provider: string): Promise<CaseResult> {
 			"--tools",
 			"read,web_search,web_fetch",
 			"-e",
-			"extensions/web-tools/index.ts",
+			"extensions/lovely-web/index.ts",
 			testPrompt
 		],
 		120_000

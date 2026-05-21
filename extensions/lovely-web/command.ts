@@ -39,12 +39,12 @@ function providerSubmenu(title: string, labels: string[], currentValue: string, 
 	}
 }
 
-export function registerWebToolsCommand(pi: ExtensionAPI) {
-	pi.registerCommand("web-tools", {
-		description: "Configure web search, fetch, and image tools",
+export function registerLovelyWebCommand(pi: ExtensionAPI) {
+	pi.registerCommand("lovely-web", {
+		description: "Configure Lovely Web search, fetch, and image tools",
 		async handler(_args, ctx) {
 			if (!ctx.hasUI) {
-				ctx.ui.notify("The /web-tools command is only available in interactive mode.", "warning")
+				ctx.ui.notify("The /lovely-web command is only available in interactive mode.", "warning")
 				return
 			}
 
@@ -52,8 +52,8 @@ export function registerWebToolsCommand(pi: ExtensionAPI) {
 			if (scope === undefined) return
 
 			const configPath = scope.startsWith("Global")
-				? join(homedir(), ".pi", "agent", "xl0-web-tools.json")
-				: resolve(ctx.cwd, ".pi", "xl0-web-tools.json")
+				? join(homedir(), ".pi", "agent", "xl0-pi-lovely-web.json")
+				: resolve(ctx.cwd, ".pi", "xl0-pi-lovely-web.json")
 
 			const config = readConfigFile(configPath)
 			const save = () => {
@@ -138,7 +138,7 @@ export function registerWebToolsCommand(pi: ExtensionAPI) {
 					}))
 				]
 				const container = new Container()
-				container.addChild(new Text(theme.fg("accent", theme.bold("Web tools")), 1, 1))
+				container.addChild(new Text(theme.fg("accent", theme.bold("Lovely Web")), 1, 1))
 				const list = new SettingsList(
 					items,
 					Math.min(items.length, 12),
