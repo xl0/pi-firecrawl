@@ -4,6 +4,7 @@ import { type ExtensionAPI, ExtensionInputComponent, getSelectListTheme, getSett
 import { Container, SelectList, type SettingItem, SettingsList, Text } from "@earendil-works/pi-tui"
 import {
 	applyToolConfig,
+	DEFAULT_PROVIDER_ID,
 	DISABLED_LABEL,
 	getImageMaxSize,
 	isFetchEnabled,
@@ -68,14 +69,14 @@ export function registerLovelyWebCommand(pi: ExtensionAPI) {
 					{
 						id: "search",
 						label: "web_search",
-						currentValue: isSearchEnabled(config) ? providerLabel(config.webSearch?.provider) : DISABLED_LABEL,
+						currentValue: isSearchEnabled(config) ? providerLabel(config.webSearch?.provider ?? DEFAULT_PROVIDER_ID) : DISABLED_LABEL,
 						description: "Search provider, or disabled to remove web_search from active tools.",
 						submenu: (currentValue, done) => providerSubmenu("Select search provider", searchLabels, currentValue, done)
 					},
 					{
 						id: "fetch",
 						label: "web_fetch",
-						currentValue: isFetchEnabled(config) ? providerLabel(config.webFetch?.provider) : DISABLED_LABEL,
+						currentValue: isFetchEnabled(config) ? providerLabel(config.webFetch?.provider ?? DEFAULT_PROVIDER_ID) : DISABLED_LABEL,
 						description: "Fetch provider, or disabled to remove web_fetch from active tools.",
 						submenu: (currentValue, done) => providerSubmenu("Select fetch provider", fetchLabels, currentValue, done)
 					},
@@ -89,9 +90,9 @@ export function registerLovelyWebCommand(pi: ExtensionAPI) {
 					{
 						id: "image-resize",
 						label: "Resize images",
-						currentValue: isImageResizeEnabled(config) ? "enabled" : "disabled",
+						currentValue: isImageResizeEnabled(config) ? "on" : "off",
 						description: "Resize fetched images to fit within the max size limit.",
-						values: ["enabled", "disabled"]
+						values: ["on", "off"]
 					},
 					{
 						id: "image-max-size",
@@ -145,21 +146,21 @@ export function registerLovelyWebCommand(pi: ExtensionAPI) {
 					getSettingsListTheme(),
 					(id, newValue) => {
 						if (id === "search") {
-							if (newValue === DISABLED_LABEL) config.webSearch = { ...config.webSearch, enabled: false }
+							if (newValue === DISABLED_LABEL) config.webSearch = { provider: null }
 							else {
 								const providerId = providerIdFromLabel(newValue)
-								if (providerId) config.webSearch = { provider: providerId, enabled: true }
+								if (providerId) config.webSearch = { provider: providerId }
 							}
 						} else if (id === "fetch") {
-							if (newValue === DISABLED_LABEL) config.webFetch = { ...config.webFetch, enabled: false }
+							if (newValue === DISABLED_LABEL) config.webFetch = { provider: null }
 							else {
 								const providerId = providerIdFromLabel(newValue)
-								if (providerId) config.webFetch = { provider: providerId, enabled: true }
+								if (providerId) config.webFetch = { provider: providerId }
 							}
 						} else if (id === "image") {
 							config.webImage = { ...config.webImage, enabled: newValue === "enabled" }
 						} else if (id === "image-resize") {
-							config.webImage = { ...config.webImage, resize: newValue === "enabled" }
+							config.webImage = { ...config.webImage, resize: newValue === "on" }
 						}
 						save()
 					},

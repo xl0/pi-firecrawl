@@ -9,6 +9,7 @@ import { tavilyProvider } from "./providers/tavily.js"
 import type { Provider, WebToolsConfig } from "./providers/types.js"
 
 export const DEFAULT_TIMEOUT_MS = 30_000
+export const DEFAULT_PROVIDER_ID = "firecrawl"
 export const DISABLED_LABEL = "Disabled"
 
 export const providers: Record<string, Provider> = {
@@ -21,11 +22,11 @@ export const providers: Record<string, Provider> = {
 export const providerNames = Object.keys(providers)
 
 export function isSearchEnabled(config: WebToolsConfig): boolean {
-	return config.webSearch?.enabled !== false
+	return config.webSearch?.provider !== null
 }
 
 export function isFetchEnabled(config: WebToolsConfig): boolean {
-	return config.webFetch?.enabled !== false
+	return config.webFetch?.provider !== null
 }
 
 export function isImageEnabled(config: WebToolsConfig): boolean {
@@ -46,11 +47,7 @@ function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): st
 
 	const direct = type === "search" ? config.webSearch?.provider : config.webFetch?.provider
 	const fallback = type === "fetch" && isSearchEnabled(config) ? config.webSearch?.provider : undefined
-	const id = direct || fallback
-	if (!id) {
-		const hint = type === "search" ? "webSearch.provider" : "webFetch.provider"
-		throw new Error(`No ${type} provider configured. Set ${hint} via /lovely-web.`)
-	}
+	const id = direct ?? fallback ?? DEFAULT_PROVIDER_ID
 	if (!providers[id]) throw new Error(`Unknown provider "${id}". Available: ${Object.keys(providers).join(", ")}.`)
 	return id
 }
@@ -83,8 +80,8 @@ export function loadConfig(cwd: string): WebToolsConfig {
 	return {
 		...global,
 		...project,
-		webSearch: { ...global.webSearch, ...project.webSearch },
-		webFetch: { ...global.webFetch, ...project.webFetch },
+		webSearch: { provider: DEFAULT_PROVIDER_ID, ...global.webSearch, ...project.webSearch },
+		webFetch: { provider: DEFAULT_PROVIDER_ID, ...global.webFetch, ...project.webFetch },
 		webImage: { ...global.webImage, ...project.webImage },
 		webApiKeys: { ...global.webApiKeys, ...project.webApiKeys }
 	}

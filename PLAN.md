@@ -6,10 +6,10 @@
 - Add standalone `web_image` for URL → LLM image content; no provider/API key needed.
 - Search and fetch providers configurable independently.
 - Persist config in `xl0-pi-lovely-web.json` (`~/.pi/agent/` + project `.pi/`, project overrides global).
-- Register `/lovely-web` for interactive provider/API-key/tool-enabled config.
+- Register `/lovely-web` for interactive provider/API-key/tool active-state config.
 - Providers use plain `fetch()`; zero runtime deps beyond Pi peer deps.
 - API key resolution: `webApiKeys.<providerId>` → provider env var → error.
-- No defaults/no backwards compat: missing config errors with guidance.
+- Search/fetch default to Firecrawl; `provider:null` disables each tool.
 
 ## Architecture
 ```
@@ -66,8 +66,8 @@ interface Provider {
 ## Config shape
 ```json
 {
-  "webSearch": { "provider": "exa", "enabled": true },
-  "webFetch":  { "provider": "firecrawl", "enabled": true },
+  "webSearch": { "provider": "exa" },
+  "webFetch":  { "provider": "firecrawl" },
   "webImage":  { "enabled": true },
   "webApiKeys": {
     "firecrawl": "fc-...",
@@ -85,7 +85,7 @@ interface Provider {
 - Each provider normalizes API responses into `SearchResult[]` and exposes raw API response in `details`.
 - `format.ts` remains provider-agnostic.
 - `web_image` is intentionally URL-only. Provider image discovery can expose URLs later; `web_image` decides which URL becomes actual image context.
-- Tool enabled flags default to true. `/lovely-web` applies changes immediately via Pi `setActiveTools()`, so disabled tools leave the active tool list and prompt without reload.
+- Search/fetch default to Firecrawl. `provider:null` disables `web_search`/`web_fetch`; `webImage.enabled:false` disables `web_image`. `/lovely-web` applies changes immediately via Pi `setActiveTools()`, so disabled tools leave the active tool list and prompt without reload.
 
 ## Test plan
 - Keep LLM-judged integration tests as smoke coverage over live providers; `test/run.ts` stores Pi JSON-mode artifacts and sessions under `test/results/<run-id>/`.

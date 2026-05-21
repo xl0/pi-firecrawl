@@ -18,12 +18,12 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/image.ts` — direct external-network smoke test for `imageImpl`: small PNG from httpbin remains unresized; large Picsum JPEG is resized to Pi inline limits.
 
 ## Extension
-`extensions/lovely-web/index.ts` is the Pi entrypoint. It applies enabled-tool config on `session_start`, registers tools via `tools.ts`, and registers `/lovely-web` via `command.ts`. Tests import tool impl modules directly instead of through the extension entrypoint.
+`extensions/lovely-web/index.ts` is the Pi entrypoint. It applies active-tool config on `session_start`, registers tools via `tools.ts`, and registers `/lovely-web` via `command.ts`. Tests import tool impl modules directly instead of through the extension entrypoint.
 
 - `tools.ts`: registers `web_search`, `web_fetch`, and `web_image`; owns tool schemas, prompt snippets/guidelines, call/result rendering hooks, and execute wrappers.
 - `tool-impl.ts`: exports standalone `searchImpl`/`fetchImpl`. Search/fetch take `WebToolsConfig` + params + optional signal/onUpdate and call provider methods. Both return `{content, details}`.
 - `image.ts`: exports standalone `imageImpl`; downloads direct image URLs without provider config/API keys. Supports PNG/JPEG/WebP/GIF, default 5 MB download cap, maximum 20 MB, optional timeout/maxBytes. Downloaded images are passed through Pi's `resizeImage()` before returning to the LLM; if decoding/resizing cannot fit inline limits, the image is omitted with a note. Metadata lives in `details`; Pi's generic image-content renderer displays the image block.
-- `command.ts`: `/lovely-web` SettingsList-based interactive command to configure providers, tool enabled states, and API keys. Tool enabled states are applied immediately through Pi `setActiveTools()`.
+- `command.ts`: `/lovely-web` SettingsList-based interactive command to configure providers, API keys, search/fetch disabled state (`provider:null`), and image enabled state. Active-tool changes are applied immediately through Pi `setActiveTools()`.
 - `render.ts`: shared collapsed text result renderer for search/fetch.
 
 Tools:
@@ -32,7 +32,7 @@ Tools:
 - `web_image`: fetch a direct image URL and return a short text note plus one image content block, matching Pi `read` image behavior. Resizing is controlled by config (`webImage.resize`, default true) and max longest side (`webImage.maxSize`, default 2000 px).
 
 ## Provider dispatch
-`extensions/lovely-web/config.ts` owns provider registry/config helpers. Search and fetch providers are configurable independently in `xl0-pi-lovely-web.json` (`~/.pi/agent/` global, `.pi/` project, project overrides). `webSearch.enabled`, `webFetch.enabled`, and `webImage.enabled` default to true; setting any to false removes the corresponding tool from Pi's active tool list and gates execution. If only `webSearch.provider` is set and search is enabled, `webFetch` falls back to it when the provider implements fetch.
+`extensions/lovely-web/config.ts` owns provider registry/config helpers. Search and fetch providers are configurable independently in `xl0-pi-lovely-web.json` (`~/.pi/agent/` global, `.pi/` project, project overrides). `webSearch.provider` and `webFetch.provider` default to `firecrawl`; setting either provider to `null` removes the corresponding tool from Pi's active tool list and gates execution. `webImage.enabled` defaults to true; setting it to false removes `web_image`. If only `webSearch.provider` is set on a raw config object and search is enabled, `webFetch` falls back to it when the provider implements fetch.
 
 API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDER_ENV_KEY]` → error.
 
@@ -73,7 +73,7 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 ```ts
 SearchResult { title, url, description?, markdown? }
 Provider { id, label, envApiKey, search(), fetch?() }
-WebToolsConfig { webSearch?: {provider?, enabled?}, webFetch?: {provider?, enabled?}, webImage?: {enabled?}, webApiKeys? }
+WebToolsConfig { webSearch?: {provider?: string | null}, webFetch?: {provider?: string | null}, webImage?: {enabled?}, webApiKeys? }
 ```
 
 ## Shared HTTP (`providers/http.ts`)
