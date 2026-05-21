@@ -1,6 +1,11 @@
-# @xl0/pi-lovely-web
+# pi-lovely-web
 
-Pi extension package providing `web_search`, `web_fetch`, and `web_image` tools backed by Firecrawl, Exa, Tavily, and Brave Search.
+Lovely Pi extension for accessing the web.
+
+## Supply chain
+
+This extension uses plain REST API - not the provider-specific packages.
+We add zero dependencies, minimizing the supply chain attack surface.
 
 ## Install
 
@@ -8,16 +13,45 @@ Pi extension package providing `web_search`, `web_fetch`, and `web_image` tools 
 pi install npm:@xl0/pi-lovely-web
 ```
 
-Or load without installing:
+## Tools
 
-```bash
-pi -e npm:@xl0/pi-lovely-web
+- `web_search` - Compact search results (list of results + markdown of the first result)
+The plain-text tool output looks likes this:
+
+> `web_search "pi coding agent harness earendil" (web, limit 5, fetch first)`
+
 ```
+1. GitHub - earendil-works/pi: AI agent toolkit
+    https://github.com/earendil-works/pi
+    Markdown:
+[markdown of the first hit if `fetch_first` is not false]
+
+ 2. packages/coding-agent/README.md at main · earendil-works/pi
+    https://github.com/earendil-works/pi/blob/main/packages/coding-agent/README.md
+    The page describes the pi project from earendil-works, a minimal, extensible terminal coding harness designed to adapt to your workflow. Key points:
+ - Pi is an AI agent toolkit for coding: CLI, unified LLM API, TUI/Web UI libraries, Slack bot, and vLLM pods.
+ - Core idea: extendable with TypeScript E…
+
+ 3. Pi Coding Agent
+    https://pi.dev/
+    Pi Coding Agent is a minimal, highly customizable terminal coding harness. It adapts to your workflow with extensible packages (extensions, skills, prompts, and themes) that you can bundle
+ and share via npm or git. Key ideas:
+ - Four modes: interactive TUI, print/JSON, RPC, and SDK (usable for embedd…
+```
+
+- `web_fetch` - The single web page in markdown format
+- `web_image` - The single image, returned as media content. Respects the Pi image resizing settings:
+
+![web_image](assets/web_image.png)
+
 
 ## Configuration
 
-Run `/lovely-web` in Pi to configure providers interactively, or create
-`~/.pi/agent/xl0-pi-lovely-web.json` (global) or `.pi/xl0-pi-lovely-web.json` (project):
+Run `/lovely-web` in Pi to configure providers interactively:
+
+![alt text](assets/settings.png)
+
+The settings are stored in `~/.pi/agent/xl0-pi-lovely-web.json` (global) or `.pi/xl0-pi-lovely-web.json` (project):
 
 ```json
 {

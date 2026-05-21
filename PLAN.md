@@ -14,7 +14,7 @@
 ## Architecture
 ```
 extensions/lovely-web/
-  index.ts              - extension entrypoint; wires session config and registration modules; re-exports tool impls for tests
+  index.ts              - extension entrypoint; wires session config and registration modules
   config.ts             - provider registry, config load/save, enabled-state application, API-key/provider resolution
   tool-impl.ts          - standalone `searchImpl` and `fetchImpl`
   image.ts              - standalone `imageImpl` and direct image download/resize handling
@@ -33,7 +33,7 @@ extensions/lovely-web/
 
 ## Refactor plan
 - [x] Split large `extensions/lovely-web/index.ts` by responsibility without behavior changes.
-- [x] Keep public test exports (`searchImpl`, `fetchImpl`, `imageImpl`) available from `index.ts`.
+- [x] Keep test imports off the extension entrypoint to avoid extra bootstrap coupling.
 - [x] Verify with `bun run check`.
 - [x] Fix Exa `Summary:` label stripping so search formatting matches reference.
 - [x] Stabilize `search-fetch` query (`NIST quantum computing explained`) for deterministic first-result fetch.

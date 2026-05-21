@@ -6,7 +6,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 ## Package
 - Published package name: `@xl0/pi-lovely-web` at version `0.1.1`.
 - Pi entry: `extensions/` via `package.json#pi.extensions`.
-- Zero runtime dependencies. Pi APIs are peer dependencies.
+- Zero runtime dependencies. Pi APIs are peer dependencies with minimum version `>=0.75.4`.
 
 ## Test infrastructure
 `test/cases.json` — 3 query-pattern cases (`search`, `search-fetch`, `fetch`), each tested against applicable providers. `search` runs on firecrawl+exa+tavily+brave; `search-fetch`/`fetch` run on firecrawl+exa+tavily (brave is search-only). Queries are stable topics to avoid content drift.
@@ -18,7 +18,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/image.ts` — direct external-network smoke test for `imageImpl`: small PNG from httpbin remains unresized; large Picsum JPEG is resized to Pi inline limits.
 
 ## Extension
-`extensions/lovely-web/index.ts` is the Pi entrypoint. It applies enabled-tool config on `session_start`, registers tools via `tools.ts`, registers `/lovely-web` via `command.ts`, and re-exports `searchImpl`, `fetchImpl`, `imageImpl`, and `ToolResult` for tests.
+`extensions/lovely-web/index.ts` is the Pi entrypoint. It applies enabled-tool config on `session_start`, registers tools via `tools.ts`, and registers `/lovely-web` via `command.ts`. Tests import tool impl modules directly instead of through the extension entrypoint.
 
 - `tools.ts`: registers `web_search`, `web_fetch`, and `web_image`; owns tool schemas, prompt snippets/guidelines, call/result rendering hooks, and execute wrappers.
 - `tool-impl.ts`: exports standalone `searchImpl`/`fetchImpl`. Search/fetch take `WebToolsConfig` + params + optional signal/onUpdate and call provider methods. Both return `{content, details}`.
