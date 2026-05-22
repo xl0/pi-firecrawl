@@ -1,6 +1,6 @@
 {
 	"name": "@xl0/pi-lovely-web",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"keywords": [
 		"pi-package",
 		"firecrawl",
@@ -50,6 +50,7 @@
 	"pi": {
 		"extensions": [
 			"./extensions"
-		]
+		],
+		"image": "https://raw.githubusercontent.com/xl0/pi-lovely-web/master/assets/web_image.png"
 	}
 }

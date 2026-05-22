@@ -42,14 +42,14 @@ The plain-text tool output looks likes this:
 - `web_fetch` - The single web page in markdown format
 - `web_image` - The single image, returned as media content. Respects the Pi image resizing settings:
 
-![web_image](assets/web_image.png)
+![web_image](https://raw.githubusercontent.com/xl0/pi-lovely-web/master/assets/web_image.png)
 
 
 ## Configuration
 
 Run `/lovely-web` in Pi to configure providers interactively:
 
-![alt text](assets/settings.png)
+![settings](https://raw.githubusercontent.com/xl0/pi-lovely-web/master/assets/settings.png)
 
 The settings are stored in `~/.pi/agent/xl0-pi-lovely-web.json` (global) or `.pi/xl0-pi-lovely-web.json` (project):
 
