@@ -1,6 +1,7 @@
 import type { ImageContent, TextContent } from "@earendil-works/pi-ai"
-import { DEFAULT_TIMEOUT_MS, getProvider, resolveApiKey } from "./config.js"
+import { DEFAULT_TIMEOUT_MS, getImageMaxSize, getProvider, isImageResizeEnabled, resolveApiKey } from "./config.js"
 import { asErrorMessage, formatSearchOutput, stringify } from "./format.js"
+import { imageImpl } from "./image.js"
 import type { WebToolsConfig } from "./providers/types.js"
 
 export interface ToolResult {
@@ -33,27 +34,48 @@ export async function searchImpl(
 
 	const shouldFetch = params.fetchResult ?? true
 	const first = searchResult.results[0]
+	let fetchedImage: ToolResult | undefined
 	if (shouldFetch && first?.url) {
 		onUpdate?.({
 			content: [{ type: "text" as const, text: `Fetching first result: ${first.url}` }],
 			details: undefined as unknown
 		})
 		try {
-			const fetchProvider = getProvider("fetch", config)
-			const fetchApiKey = resolveApiKey(fetchProvider, config)
-			const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
+			if (params.source === "images") {
+				try {
+					fetchedImage = await imageImpl(
+						{
+							url: first.url,
+							timeout: DEFAULT_TIMEOUT_MS,
+							resize: isImageResizeEnabled(config),
+							maxSize: getImageMaxSize(config)
+						},
+						signal
+					)
+				} catch {
+					const fetchProvider = getProvider("fetch", config)
+					const fetchApiKey = resolveApiKey(fetchProvider, config)
+					const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
+					first.markdown = fetched.markdown
+					if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
+				}
+			} else {
+				const fetchProvider = getProvider("fetch", config)
+				const fetchApiKey = resolveApiKey(fetchProvider, config)
+				const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
+				first.markdown = fetched.markdown
+				if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
+			}
 
 			if (signal?.aborted) throw new Error("Search cancelled")
-			first.markdown = fetched.markdown
-			if (fetched.metadata) (first as { metadata?: unknown }).metadata = fetched.metadata
 		} catch (err) {
 			first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`
 		}
 	}
 
 	const result: ToolResult = {
-		content: [{ type: "text" as const, text: formatSearchOutput(searchResult.results) }],
-		details: searchResult.raw
+		content: [{ type: "text" as const, text: formatSearchOutput(searchResult.results) }, ...(fetchedImage?.content || [])],
+		details: fetchedImage ? { search: searchResult.raw, image: fetchedImage.details } : searchResult.raw
 	}
 	onUpdate?.(result)
 	return result

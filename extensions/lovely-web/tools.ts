@@ -30,13 +30,14 @@ export function registerLovelyWebTools(pi: ExtensionAPI) {
 			source: Type.Optional(StringEnum(["web", "news", "images"] as const)),
 			fetchResult: Type.Optional(
 				Type.Boolean({
-					description: "Whether to fetch the first result and include markdown. Defaults to true."
+					description: "Whether to fetch the first result. Defaults to true; image searches fetch image content when possible."
 				})
 			)
 		}),
 		renderCall(args, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
-			const bits = [args.source ?? "web", `limit ${args.limit ?? 5}`]
+			const source = args.source ?? "web"
+			const bits = [source, `limit ${args.limit ?? 5}`]
 			if (args.fetchResult ?? true) bits.push("fetch first")
 			text.setText(
 				`${theme.fg("toolTitle", theme.bold("web_search "))}${theme.fg("muted", `"${args.query}"`)} ${theme.fg("dim", `(${bits.join(", ")})`)}`
