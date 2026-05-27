@@ -1,7 +1,7 @@
 import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
-const BASE_URL = "https://api.firecrawl.dev/v1"
+const BASE_URL = "https://api.firecrawl.dev/v2"
 const DEFAULT_TIMEOUT_MS = 30_000
 
 interface SearchBody {
@@ -59,11 +59,22 @@ export const firecrawlProvider: Provider = {
 
 		const raw = await fetchJson(`${BASE_URL}/search`, body, apiKey, opts.timeout ?? DEFAULT_TIMEOUT_MS, signal)
 		throwIfError(raw)
-		const data = raw.data as Array<{ title: string; url: string; description: string }>
+		const data = raw.data as {
+			web?: Array<{ title: string; url: string; description?: string; markdown?: string }>
+			news?: Array<{ title: string; url: string; snippet?: string; markdown?: string }>
+			images?: Array<{ title?: string; url: string; imageUrl?: string }>
+		}
+		const items = opts.source === "news" ? data.news || [] : opts.source === "images" ? data.images || [] : data.web || []
 
-		const results: SearchResult[] = data.map(item => {
-			const r: SearchResult = { title: item.title, url: item.url }
-			if (item.description) r.description = item.description
+		const results: SearchResult[] = items.map(item => {
+			const isImage = opts.source === "images"
+			const r: SearchResult = {
+				title: item.title || item.url,
+				url: isImage && "imageUrl" in item && item.imageUrl ? item.imageUrl : item.url
+			}
+			const description = "description" in item ? item.description : "snippet" in item ? item.snippet : undefined
+			if (description) r.description = description
+			if ("markdown" in item && item.markdown) r.markdown = item.markdown
 			return r
 		})
 

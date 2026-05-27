@@ -4,7 +4,7 @@
 Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa, Tavily, Brave) for Pi.
 
 ## Package
-- Published package name: `@xl0/pi-lovely-web` at version `0.1.3`.
+- Published package name: `@xl0/pi-lovely-web` at version `0.1.4`.
 - Pi entry: `extensions/` via `package.json#pi.extensions`.
 - Published files include `extensions/`, `README.md`, and `LICENSE`; package gallery image metadata points at GitHub-hosted screenshots under `assets/`.
 - Zero runtime dependencies. Pi APIs are peer dependencies with minimum version `>=0.75.4`.
@@ -28,7 +28,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 - `render.ts`: shared collapsed text result renderer for search/fetch.
 
 Tools:
-- `web_search`: web/news/images search dispatching to configured search provider. Result rendering shows the first few output lines until expanded.
+- `web_search`: web/news/images search dispatching to configured search provider. Result rendering shows the first few output lines until expanded. Auto-fetches first result by default; image searches first try direct image fetch/resizing and fall back to page markdown fetch if the result URL is not image content.
 - `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Public options: `url`, optional `waitFor`, optional `timeout`, optional `includeMetadata`. Tool call rendering shows supplied non-default args. Result rendering shows the first few output lines until expanded.
 - `web_image`: fetch a direct image URL and return a short text note plus one image content block, matching Pi `read` image behavior. Resizing is controlled by config (`webImage.resize`, default true) and max longest side (`webImage.maxSize`, default 2000 px).
 
@@ -42,9 +42,9 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 ## Providers
 
 ### Firecrawl (`providers/firecrawl.ts`)
-- Base: `https://api.firecrawl.dev/v1`
-- Search: POST `/v1/search` with query, limit, optional sources array.
-- Fetch: POST `/v1/scrape` with url, formats:["markdown"], `onlyMainContent:true`, optional waitFor.
+- Base: `https://api.firecrawl.dev/v2`
+- Search: POST `/v2/search` with query, limit, optional sources array. Maps the returned `web`/`news`/`images` arrays into `SearchResult[]`; image searches use `imageUrl` as the result URL when present.
+- Fetch: POST `/v2/scrape` with url, formats:["markdown"], `onlyMainContent:true`, optional waitFor.
 - Auth: `Authorization: Bearer <key>`.
 - Response wrapped in `{ success, data }` — provider checks success before mapping.
 
