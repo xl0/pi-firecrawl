@@ -10,6 +10,7 @@ interface SearchBody {
 	type: string
 	contents: { summary: boolean }
 	category?: string
+	userLocation?: string
 }
 
 interface ContentsBody {
@@ -28,11 +29,6 @@ interface ExaContentsResult {
 	url: string
 	title?: string
 	text?: string
-}
-
-function sourceToCategory(source?: string): string | undefined {
-	if (source === "news") return "news"
-	return undefined
 }
 
 function stripSummaryLabel(text: string): string {
@@ -68,8 +64,9 @@ export const exaProvider: Provider = {
 			type: "auto",
 			contents: { summary: true }
 		}
-		const category = sourceToCategory(opts.source)
-		if (category) body.category = category
+		if (opts.source) throw new Error("Exa search uses category, not source. Omit category for general web search, or set category: news.")
+		if (opts.category) body.category = opts.category
+		if (opts.country) body.userLocation = opts.country
 
 		const raw = await fetchJson(`${BASE_URL}/search`, body, apiKey, opts.timeout ?? DEFAULT_TIMEOUT_MS, signal)
 		const data = (raw as { results?: ExaSearchResult[] }).results ?? []

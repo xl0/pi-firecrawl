@@ -28,6 +28,8 @@ interface BraveImageResult {
 	url: string
 	title?: string
 	description?: string
+	properties?: { url?: string }
+	thumbnail?: { src?: string }
 }
 
 interface BraveImageResponse {
@@ -53,15 +55,20 @@ function fetchJson(url: string, apiKey: string, timeout: number, signal?: AbortS
 	)
 }
 
-function buildSearchUrl(source: string | undefined, query: string, count: number): string {
-	const encodedQuery = encodeURIComponent(query)
-	if (source === "news") {
-		return `${BASE_URL}/news/search?q=${encodedQuery}&count=${count}`
-	}
-	if (source === "images") {
-		return `${BASE_URL}/images/search?q=${encodedQuery}&count=${count}`
-	}
-	return `${BASE_URL}/web/search?q=${encodedQuery}&count=${count}`
+function buildSearchUrl(
+	source: string | undefined,
+	query: string,
+	count: number,
+	opts: { country?: string; searchLang?: string; freshness?: string }
+): string {
+	const endpoint = source === "news" ? "news" : source === "images" ? "images" : "web"
+	const url = new URL(`${BASE_URL}/${endpoint}/search`)
+	url.searchParams.set("q", query)
+	url.searchParams.set("count", String(count))
+	if (opts.country) url.searchParams.set("country", opts.country.toUpperCase())
+	if (opts.searchLang) url.searchParams.set("search_lang", opts.searchLang)
+	if (opts.freshness && source !== "images") url.searchParams.set("freshness", opts.freshness)
+	return url.toString()
 }
 
 export const braveProvider: Provider = {
@@ -70,7 +77,7 @@ export const braveProvider: Provider = {
 	envApiKey: "BRAVE_API_KEY",
 
 	async search(apiKey, query, opts, signal) {
-		const url = buildSearchUrl(opts.source, query, opts.limit)
+		const url = buildSearchUrl(opts.source, query, opts.limit, opts)
 		const raw = await fetchJson(url, apiKey, opts.timeout ?? DEFAULT_TIMEOUT_MS, signal)
 
 		let items: SearchResult[] = []
@@ -85,9 +92,9 @@ export const braveProvider: Provider = {
 		} else if (opts.source === "images") {
 			const data = raw as BraveImageResponse
 			items = (data.results ?? []).map(item => ({
-				title: item.title || item.url,
-				url: item.url,
-				description: item.description || ""
+				title: item.title || item.properties?.url || item.url,
+				url: item.properties?.url || item.thumbnail?.src || item.url,
+				description: item.description || item.url || ""
 			}))
 		} else {
 			const data = raw as BraveWebResponse

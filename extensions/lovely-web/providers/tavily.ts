@@ -9,6 +9,10 @@ interface SearchBody {
 	max_results: number
 	search_depth: string
 	topic?: string
+	time_range?: string
+	country?: string
+	include_images?: boolean
+	include_image_descriptions?: boolean
 }
 
 interface ExtractBody {
@@ -25,11 +29,16 @@ interface TavilySearchResult {
 	score: number
 }
 
+interface TavilyImageResult {
+	url: string
+	description?: string
+}
+
 interface TavilySearchResponse {
 	query: string
 	answer?: string
 	results?: TavilySearchResult[]
-	images?: unknown[]
+	images?: TavilyImageResult[]
 	response_time: number
 }
 
@@ -44,11 +53,6 @@ interface TavilyExtractResponse {
 	results?: TavilyExtractResult[]
 	failed_results?: Array<{ url: string; error: string }>
 	response_time: number
-}
-
-function sourceToTopic(source?: string): string | undefined {
-	if (source === "news") return "news"
-	return undefined
 }
 
 function postJson(url: string, body: unknown, apiKey: string, timeout: number, signal?: AbortSignal): Promise<unknown> {
@@ -79,11 +83,28 @@ export const tavilyProvider: Provider = {
 			max_results: opts.limit,
 			search_depth: "basic"
 		}
-		const topic = sourceToTopic(opts.source)
-		if (topic) body.topic = topic
+		if (opts.source) throw new Error("Tavily search uses topic/includeImages, not source.")
+		const topic = opts.topic
+		if (topic && topic !== "general") body.topic = topic
+		if (opts.timeRange) body.time_range = opts.timeRange
+		if (opts.country && topic !== "news" && topic !== "finance") body.country = opts.country.toLowerCase()
+		if (opts.includeImages) {
+			body.include_images = true
+			body.include_image_descriptions = true
+		}
 
 		const raw = await postJson(`${BASE_URL}/search`, body, apiKey, opts.timeout ?? DEFAULT_TIMEOUT_MS, signal)
 		const data = raw as TavilySearchResponse
+
+		if (opts.includeImages) {
+			const results: SearchResult[] = (data.images ?? []).map(item => ({
+				title: item.description || item.url,
+				url: item.url,
+				description: item.description || ""
+			}))
+			return { results, raw }
+		}
+
 		const items = data.results ?? []
 
 		const results: SearchResult[] = items.map(item => {

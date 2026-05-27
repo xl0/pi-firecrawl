@@ -10,6 +10,7 @@ import type { Provider, WebToolsConfig } from "./providers/types.js"
 
 export const DEFAULT_TIMEOUT_MS = 30_000
 export const DEFAULT_PROVIDER_ID = "firecrawl"
+export const CONFIG_FILE_NAME = "xl0-pi-lovely-web.json"
 export const DISABLED_LABEL = "Disabled"
 
 export const providers: Record<string, Provider> = {
@@ -75,8 +76,8 @@ export function resolveApiKey(provider: Provider, config: WebToolsConfig): strin
 }
 
 export function loadConfig(cwd: string): WebToolsConfig {
-	const global = readConfigFile(join(homedir(), ".pi", "agent", "xl0-pi-lovely-web.json"))
-	const project = readConfigFile(resolve(cwd, ".pi", "xl0-pi-lovely-web.json"))
+	const global = readConfigFile(join(homedir(), ".pi", "agent", CONFIG_FILE_NAME))
+	const project = readConfigFile(resolve(cwd, ".pi", CONFIG_FILE_NAME))
 	return {
 		...global,
 		...project,

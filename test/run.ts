@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process"
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
+import { CONFIG_FILE_NAME } from "../extensions/lovely-web/config.js"
 import { loadTestEnv } from "./env.js"
 
 interface TestCase {
@@ -22,7 +23,7 @@ loadTestEnv(join(import.meta.dirname, ".env"))
 const cases = JSON.parse(readFileSync(join(import.meta.dirname, "cases.json"), "utf-8")) as TestCase[]
 const projectRoot = resolve(import.meta.dirname, "..")
 const refDir = join(import.meta.dirname, "references")
-const configPath = join(projectRoot, ".pi", "xl0-web-tools.json")
+const configPath = join(projectRoot, ".pi", CONFIG_FILE_NAME)
 
 function writePerCaseConfig(provider: string) {
 	mkdirSync(join(projectRoot, ".pi"), { recursive: true })
