@@ -5,7 +5,7 @@
 - Keep `web_search` and `web_fetch` tool names; dispatch to configured provider at runtime.
 - Add standalone `web_image` for URL → LLM image content; no provider/API key needed.
 - Search and fetch providers configurable independently.
-- Persist config in `xl0-pi-lovely-web.json` (`~/.pi/agent/` + project `.pi/`, project overrides global).
+- Persist config in exported `CONFIG_FILE_NAME` (`xl0-pi-lovely-web.json`) under `~/.pi/agent/` + project `.pi/`, project overrides global.
 - Register `/lovely-web` for interactive provider/API-key/tool active-state config.
 - Providers use plain `fetch()`; zero runtime deps beyond Pi peer deps.
 - API key resolution: `webApiKeys.<providerId>` → provider env var → error.
@@ -16,9 +16,9 @@
 extensions/lovely-web/
   index.ts              - extension entrypoint; wires session config and registration modules
   config.ts             - provider registry, config load/save, enabled-state application, API-key/provider resolution
-  tool-impl.ts          - standalone `searchImpl` and `fetchImpl`
   image.ts              - standalone `imageImpl` and direct image download/resize handling
-  tools.ts              - `web_search`, `web_fetch`, `web_image` registration/render/execute wrappers
+  types.ts              - shared tool result type
+  tools.ts              - dynamic `web_search` and static `web_fetch`/`web_image` registration/render/execute wrappers
   command.ts            - `/lovely-web` interactive settings command
   render.ts             - shared collapsed text result renderer
   format.ts             - formatSearchOutput, stringify, asErrorMessage
@@ -81,7 +81,7 @@ interface Provider {
 ## Provider decisions
 - Firecrawl honors `waitFor`; Exa and Tavily ignore it and `web_fetch` warns.
 - Fetch capability is determined by whether a provider implements `fetch`; Brave is search-only and `web_fetch` errors if Brave is the only resolved fetch provider.
-- Source mapping is provider-specific: Firecrawl uses `sources`; Exa/Tavily map `news` to their news category/topic and treat `images` as unsupported/no-op; Brave uses separate web/news/images endpoints.
+- `web_search` schema is re-registered from active provider config and mirrors useful provider API concepts: Firecrawl exposes `source` plus category/location filters; Exa exposes native `category` only (no source/images); Tavily exposes `topic` plus `includeImages`; Brave exposes endpoint `source` plus country/language/freshness params.
 - Each provider normalizes API responses into `SearchResult[]` and exposes raw API response in `details`.
 - `format.ts` remains provider-agnostic.
 - `web_image` is intentionally URL-only. Provider image discovery can expose URLs later; `web_image` decides which URL becomes actual image context.
@@ -93,7 +93,7 @@ interface Provider {
 
 ## Done
 - [x] Package renamed, zero runtime deps, old extension removed, checks pass.
-- [x] `searchImpl`/`fetchImpl` extracted for testing.
+- [x] Tool execution now calls providers directly from `tools.ts`; reference updater calls Tavily directly.
 - [x] Firecrawl, Exa, Tavily, Brave providers implemented.
 - [x] `/lovely-web` provider-driven config command implemented with tool enable/disable controls.
 - [x] Integration tests: 10 cases pass (3 firecrawl + 3 exa + 3 tavily + 1 brave).

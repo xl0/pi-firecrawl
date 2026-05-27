@@ -4,6 +4,7 @@ import { type ExtensionAPI, ExtensionInputComponent, getSelectListTheme, getSett
 import { Container, SelectList, type SettingItem, SettingsList, Text } from "@earendil-works/pi-tui"
 import {
 	applyToolConfig,
+	CONFIG_FILE_NAME,
 	DEFAULT_PROVIDER_ID,
 	DISABLED_LABEL,
 	getImageMaxSize,
@@ -20,6 +21,7 @@ import {
 	readConfigFile,
 	writeConfigFile
 } from "./config.js"
+import { registerLovelyWebSearchTool } from "./tools.js"
 
 function providerSubmenu(title: string, labels: string[], currentValue: string, done: (selectedValue?: string) => void) {
 	const container = new Container()
@@ -53,13 +55,15 @@ export function registerLovelyWebCommand(pi: ExtensionAPI) {
 			if (scope === undefined) return
 
 			const configPath = scope.startsWith("Global")
-				? join(homedir(), ".pi", "agent", "xl0-pi-lovely-web.json")
-				: resolve(ctx.cwd, ".pi", "xl0-pi-lovely-web.json")
+				? join(homedir(), ".pi", "agent", CONFIG_FILE_NAME)
+				: resolve(ctx.cwd, ".pi", CONFIG_FILE_NAME)
 
 			const config = readConfigFile(configPath)
 			const save = () => {
 				writeConfigFile(configPath, config)
-				applyToolConfig(pi, loadConfig(ctx.cwd))
+				const activeConfig = loadConfig(ctx.cwd)
+				registerLovelyWebSearchTool(pi, activeConfig)
+				applyToolConfig(pi, activeConfig)
 			}
 
 			await ctx.ui.custom((_tui, theme, _keybindings, done) => {

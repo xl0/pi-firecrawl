@@ -1,8 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import type { WebToolsConfig } from "../extensions/lovely-web/providers/types.js"
-import type { ToolResult } from "../extensions/lovely-web/tool-impl.js"
-import { fetchImpl, searchImpl } from "../extensions/lovely-web/tool-impl.js"
+import { DEFAULT_TIMEOUT_MS, providers, resolveApiKey } from "../extensions/lovely-web/config.js"
+import { formatSearchOutput } from "../extensions/lovely-web/format.js"
+import type { SearchOptions, WebToolsConfig } from "../extensions/lovely-web/providers/types.js"
 import { loadTestEnv } from "./env.js"
 
 interface TestCase {
@@ -31,31 +31,27 @@ for (const c of cases) {
 	console.log(`Updating reference: ${c.id} (${c.tool})`)
 
 	try {
-		let result: ToolResult
+		let text: string
 		const args = c.args
+		const provider = providers["tavily"]
+		if (!provider) throw new Error("Tavily provider not found")
+		const apiKey = resolveApiKey(provider, config)
 		if (c.tool === "search") {
-			const params: { query: string; limit?: number; source?: string; fetchResult?: boolean } = {
-				query: args["query"] as string
+			const options: SearchOptions = { limit: (args["limit"] as number | undefined) ?? 5, timeout: DEFAULT_TIMEOUT_MS }
+			const result = await provider.search(apiKey, args["query"] as string, options)
+			if (args["fetchResult"] === true && result.results[0]?.url) {
+				const fetched = await provider.fetch?.(apiKey, result.results[0].url, { timeout: DEFAULT_TIMEOUT_MS })
+				if (fetched) result.results[0].markdown = fetched.markdown
 			}
-			if (args["limit"] !== undefined) params.limit = args["limit"] as number
-			if (args["source"] !== undefined) params.source = args["source"] as string
-			if (args["fetchResult"] !== undefined) params.fetchResult = args["fetchResult"] as boolean
-			result = await searchImpl(config, params)
+			text = formatSearchOutput(result.results)
 		} else if (c.tool === "fetch") {
-			const params: { url: string; waitFor?: number; timeout?: number; includeMetadata?: boolean } = {
-				url: args["url"] as string
-			}
-			if (args["waitFor"] !== undefined) params.waitFor = args["waitFor"] as number
-			if (args["timeout"] !== undefined) params.timeout = args["timeout"] as number
-			if (args["includeMetadata"] !== undefined) params.includeMetadata = args["includeMetadata"] as boolean
-			result = await fetchImpl(config, params)
+			const result = await provider.fetch?.(apiKey, args["url"] as string, { timeout: DEFAULT_TIMEOUT_MS })
+			text = result?.markdown ?? ""
 		} else {
 			console.error(`  Unknown tool: ${c.tool}`)
 			failed++
 			continue
 		}
-
-		const text = result.content.find(block => block.type === "text")?.text ?? ""
 		const refPath = join(refDir, `ref-${c.id}.txt`)
 		writeFileSync(refPath, text)
 		console.log(`  → wrote ${refPath} (${text.length} chars)`)

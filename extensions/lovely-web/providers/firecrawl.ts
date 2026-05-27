@@ -8,6 +8,10 @@ interface SearchBody {
 	query: string
 	limit: number
 	sources?: string[]
+	categories?: string[]
+	location?: string
+	country?: string
+	tbs?: string
 }
 
 interface ScrapeBody {
@@ -56,6 +60,10 @@ export const firecrawlProvider: Provider = {
 	async search(apiKey, query, opts, signal) {
 		const body: SearchBody = { query, limit: opts.limit }
 		if (opts.source) body.sources = [opts.source]
+		if (opts.category) body.categories = [opts.category]
+		if (opts.location) body.location = opts.location
+		if (opts.country) body.country = opts.country
+		if (opts.tbs) body.tbs = opts.tbs
 
 		const raw = await fetchJson(`${BASE_URL}/search`, body, apiKey, opts.timeout ?? DEFAULT_TIMEOUT_MS, signal)
 		throwIfError(raw)

@@ -5,16 +5,26 @@ export interface SearchResult {
 	markdown?: string // populated for first result when fetchResult=true
 }
 
+export interface SearchOptions {
+	limit: number
+	source?: string
+	timeout?: number
+	category?: string
+	location?: string
+	country?: string
+	tbs?: string
+	timeRange?: string
+	topic?: string
+	includeImages?: boolean
+	searchLang?: string
+	freshness?: string
+}
+
 export interface Provider {
 	readonly id: string
 	readonly label: string
 	readonly envApiKey: string
-	search(
-		apiKey: string,
-		query: string,
-		opts: { limit: number; source?: string; timeout?: number },
-		signal?: AbortSignal
-	): Promise<{ results: SearchResult[]; raw: unknown }>
+	search(apiKey: string, query: string, opts: SearchOptions, signal?: AbortSignal): Promise<{ results: SearchResult[]; raw: unknown }>
 	fetch?(
 		apiKey: string,
 		url: string,
