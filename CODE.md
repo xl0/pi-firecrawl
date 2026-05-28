@@ -33,7 +33,7 @@ Tools:
 - `web_image`: fetch a direct image URL and return a short text note plus one image content block, matching Pi `read` image behavior. Resizing is controlled by config (`webImage.resize`, default true) and max longest side (`webImage.maxSize`, default 2000 px).
 
 ## Provider dispatch
-`extensions/lovely-web/config.ts` owns provider registry/config helpers and exports `CONFIG_FILE_NAME` (`xl0-pi-lovely-web.json`). Search and fetch providers are configurable independently in that file (`~/.pi/agent/` global, `.pi/` project, project overrides). `webSearch.provider` defaults to `firecrawl`. `webFetch.provider` has no default; missing or `null` removes `web_fetch` from Pi's active tool list and gates execution. `webImage.enabled` defaults to true; setting it to false removes `web_image`.
+`extensions/lovely-web/config.ts` owns provider registry/config helpers and exports `CONFIG_FILE_NAME` (`xl0-pi-lovely-web.json`). Search and fetch providers are configurable independently in that file (`~/.pi/agent/` global, `.pi/` project, project overrides). `webSearch.provider` defaults to `firecrawl`. `webFetch.provider` has no default; missing or `null` removes `web_fetch` from Pi's active tool list and gates execution. `webImage.enabled` defaults to true; setting it to false removes `web_image`. Malformed config JSON throws a path-specific error; session startup and `/lovely-web` show it as a user-facing error.
 
 API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDER_ENV_KEY]` → error.
 

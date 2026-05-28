@@ -21,6 +21,7 @@ import {
 	readConfigFile,
 	writeConfigFile
 } from "./config.js"
+import { asErrorMessage } from "./format.js"
 import { registerLovelyWebSearchTool } from "./tools.js"
 
 function providerSubmenu(title: string, labels: string[], currentValue: string, done: (selectedValue?: string) => void) {
@@ -58,7 +59,13 @@ export function registerLovelyWebCommand(pi: ExtensionAPI) {
 				? join(homedir(), ".pi", "agent", CONFIG_FILE_NAME)
 				: resolve(ctx.cwd, ".pi", CONFIG_FILE_NAME)
 
-			const config = readConfigFile(configPath)
+			let config: ReturnType<typeof readConfigFile>
+			try {
+				config = readConfigFile(configPath)
+			} catch (error) {
+				ctx.ui.notify(asErrorMessage(error), "error")
+				return
+			}
 			const save = () => {
 				writeConfigFile(configPath, config)
 				const activeConfig = loadConfig(ctx.cwd)
