@@ -6,6 +6,7 @@ import {
 	DEFAULT_TIMEOUT_MS,
 	getImageMaxSize,
 	getProvider,
+	isFetchEnabled,
 	isImageEnabled,
 	isImageResizeEnabled,
 	loadConfig,
@@ -129,7 +130,7 @@ export function registerLovelyWebSearchTool(pi: ExtensionAPI, config: WebToolsCo
 								// Some image-search providers return source pages instead of direct image URLs.
 							}
 						}
-						if (!fetchedImage) first.markdown = await fetchSearchResultMarkdown(config, first.url, signal)
+						if (!fetchedImage && isFetchEnabled(config)) first.markdown = await fetchSearchResultMarkdown(config, first.url, signal)
 						if (signal?.aborted) throw new Error("Search cancelled")
 					} catch (err) {
 						first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`

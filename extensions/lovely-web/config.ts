@@ -27,7 +27,7 @@ export function isSearchEnabled(config: WebToolsConfig): boolean {
 }
 
 export function isFetchEnabled(config: WebToolsConfig): boolean {
-	return config.webFetch?.provider !== null
+	return config.webFetch?.provider !== null && config.webFetch?.provider !== undefined
 }
 
 export function isImageEnabled(config: WebToolsConfig): boolean {
@@ -47,8 +47,7 @@ function resolveProviderId(type: "search" | "fetch", config: WebToolsConfig): st
 	if (type === "fetch" && !isFetchEnabled(config)) throw new Error("web_fetch is disabled. Enable it via /lovely-web.")
 
 	const direct = type === "search" ? config.webSearch?.provider : config.webFetch?.provider
-	const fallback = type === "fetch" && isSearchEnabled(config) ? config.webSearch?.provider : undefined
-	const id = direct ?? fallback ?? DEFAULT_PROVIDER_ID
+	const id = direct ?? DEFAULT_PROVIDER_ID
 	if (!providers[id]) throw new Error(`Unknown provider "${id}". Available: ${Object.keys(providers).join(", ")}.`)
 	return id
 }
@@ -82,7 +81,7 @@ export function loadConfig(cwd: string): WebToolsConfig {
 		...global,
 		...project,
 		webSearch: { provider: DEFAULT_PROVIDER_ID, ...global.webSearch, ...project.webSearch },
-		webFetch: { provider: DEFAULT_PROVIDER_ID, ...global.webFetch, ...project.webFetch },
+		webFetch: { ...global.webFetch, ...project.webFetch },
 		webImage: { ...global.webImage, ...project.webImage },
 		webApiKeys: { ...global.webApiKeys, ...project.webApiKeys }
 	}
