@@ -88,12 +88,12 @@ export function loadConfig(cwd: string): WebToolsConfig {
 }
 
 export function readConfigFile(path: string): WebToolsConfig {
+	if (!existsSync(path)) return {}
+	const raw = readFileSync(path, "utf-8")
 	try {
-		if (!existsSync(path)) return {}
-		const raw = readFileSync(path, "utf-8")
 		return JSON.parse(raw) as WebToolsConfig
-	} catch {
-		return {}
+	} catch (error) {
+		throw new Error(`Could not parse Lovely Web config at ${path}: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }
 
