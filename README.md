@@ -15,8 +15,9 @@ pi install npm:@xl0/pi-lovely-web
 
 ## Tools
 
-- `web_search` - Compact search results (list of results + markdown of the first result)
-The plain-text tool output looks likes this:
+- `web_search` - Compact search results; includes markdown from the first result when `web_fetch` is configured.
+
+The plain-text tool output looks like this:
 
 > `web_search "pi coding agent harness earendil" (web, limit 5, fetch first)`
 
@@ -26,17 +27,15 @@ The plain-text tool output looks likes this:
     Markdown:
 [markdown of the first hit if `fetch_first` is not false]
 
- 2. packages/coding-agent/README.md at main · earendil-works/pi
-    https://github.com/earendil-works/pi/blob/main/packages/coding-agent/README.md
-    The page describes the pi project from earendil-works, a minimal, extensible terminal coding harness designed to adapt to your workflow. Key points:
- - Pi is an AI agent toolkit for coding: CLI, unified LLM API, TUI/Web UI libraries, Slack bot, and vLLM pods.
- - Core idea: extendable with TypeScript E…
+2. packages/coding-agent/README.md at main · earendil-works/pi
+   https://github.com/earendil-works/pi/blob/main/packages/coding-agent/README.md
+   The page describes the pi project from earendil-works, a minimal, extensible terminal coding harness designed to adapt to your workflow. Key points:
+   - Pi is an AI agent toolkit for coding: CLI, unified LLM API, TUI/Web UI libraries, Slack bot, and vLLM pods.
+   - Core idea: extendable with TypeScript E…
 
- 3. Pi Coding Agent
-    https://pi.dev/
-    Pi Coding Agent is a minimal, highly customizable terminal coding harness. It adapts to your workflow with extensible packages (extensions, skills, prompts, and themes) that you can bundle
- and share via npm or git. Key ideas:
- - Four modes: interactive TUI, print/JSON, RPC, and SDK (usable for embedd…
+3. Pi Coding Agent
+   https://pi.dev/
+   Pi Coding Agent is a minimal, highly customizable terminal coding harness. It adapts to your workflow with extensible packages, themes, skills, and prompts.
 ```
 
 - `web_fetch` - The single web page in markdown format
@@ -69,9 +68,7 @@ The settings are stored in `~/.pi/agent/xl0-pi-lovely-web.json` (global) or `.pi
 
 API keys can also be set via environment variables: `FIRECRAWL_API_KEY`, `EXA_API_KEY`, `TAVILY_API_KEY`, `BRAVE_API_KEY`.
 
-Search and fetch default to Firecrawl and can use different providers. Set `provider:null`
-on `webSearch` or `webFetch` to remove that tool from Pi's active tool list. Set
-`webImage.enabled:false` to disable `web_image`.
+Search defaults to Firecrawl. Fetch has no default; configure `webFetch.provider` to enable `web_fetch` and first-result fetches from `web_search`. Set `provider:null` on `webSearch` or `webFetch` to remove that tool from Pi's active tool list. Set `webImage.enabled:false` to disable `web_image`.
 
 `waitFor` is provider-specific: Firecrawl supports it as an extra pre-capture delay; Exa and Tavily ignore it and `web_fetch` returns a warning if supplied.
 
