@@ -20,11 +20,11 @@
 - `providers/` contains one provider adapter per external API plus shared HTTP/types.
 
 ## Provider decisions
-- Firecrawl supports search/fetch and honors `waitFor`.
-- Exa supports search/fetch; `waitFor` is ignored and reported as a warning by `web_fetch`.
-- Tavily supports search/fetch; `waitFor` is ignored and reported as a warning by `web_fetch`.
+- Firecrawl supports search/fetch and exposes fetch `waitFor`.
+- Exa supports search/fetch and exposes fetch `maxAgeHours`.
+- Tavily supports search/fetch and exposes fetch `extractDepth`.
 - Brave Search supports search only.
-- Search/fetch schemas expose provider-specific API concepts directly where useful.
+- Search/fetch schemas expose provider-specific API concepts directly where useful, but keep fetch extras sparse to avoid context pollution.
 
 ## Next useful work
 - [ ] Refactor `command.ts` UI item construction after behavior stabilizes.

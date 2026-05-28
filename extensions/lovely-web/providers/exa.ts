@@ -16,8 +16,9 @@ interface SearchBody {
 }
 
 interface ContentsBody {
-	ids: string[]
+	urls: string[]
 	text: boolean
+	maxAgeHours?: number
 }
 
 interface ExaSearchResult {
@@ -62,6 +63,11 @@ export const exaProvider: Provider = {
 		category: Type.Optional(StringEnum(["company", "people", "research paper", "news", "personal site", "financial report"])),
 		country: Type.Optional(Type.String({ description: "Two-letter ISO user location for result localization, e.g. US, DE, CO." }))
 	},
+	fetchParameters: {
+		maxAgeHours: Type.Optional(
+			Type.Integer({ description: "Maximum cache age in hours; 0 fetches fresh content, -1 uses cache only.", minimum: -1, maximum: 720 })
+		)
+	},
 
 	async search(apiKey, query, opts, signal) {
 		const body: SearchBody = {
@@ -91,9 +97,10 @@ export const exaProvider: Provider = {
 
 	async fetch(apiKey, url, opts, signal) {
 		const body: ContentsBody = {
-			ids: [url],
+			urls: [url],
 			text: true
 		}
+		if (opts.maxAgeHours !== undefined) body.maxAgeHours = opts.maxAgeHours
 
 		const raw = await fetchJson(`${BASE_URL}/contents`, body, apiKey, opts.timeout ?? DEFAULT_TIMEOUT_MS, signal)
 		const results = (raw as { results?: ExaContentsResult[] }).results

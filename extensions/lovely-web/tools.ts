@@ -15,7 +15,7 @@ import {
 import { DEFAULT_TIMEOUT_MS } from "./constants.js"
 import { asErrorMessage, formatSearchOutput, stringify } from "./format.js"
 import { DEFAULT_MAX_IMAGE_BYTES, imageImpl, MAX_IMAGE_BYTES } from "./image.js"
-import type { SearchOptions, WebToolsConfig } from "./providers/types.js"
+import type { FetchOptions, SearchOptions, WebToolsConfig } from "./providers/types.js"
 import { renderTextResult } from "./render.js"
 import type { ToolResult } from "./types.js"
 
@@ -33,6 +33,11 @@ interface SearchToolArgs {
 	includeImages?: boolean
 	searchLang?: string
 	freshness?: string
+}
+
+interface FetchToolArgs extends FetchOptions {
+	url: string
+	includeMetadata?: boolean
 }
 
 async function fetchSearchResultImage(config: WebToolsConfig, url: string, signal?: AbortSignal): Promise<ToolResult> {
@@ -74,6 +79,23 @@ function getSearchParameters(config: WebToolsConfig) {
 	}
 
 	Object.assign(params, providers[providerId]?.searchParameters)
+	return Type.Object(params)
+}
+
+function getFetchParameters(config: WebToolsConfig) {
+	const configured = config.webFetch?.provider
+	const providerId = configured && providers[configured]?.fetch ? configured : "firecrawl"
+	const params: Record<string, TSchema> = {
+		url: Type.String({ description: "The URL to fetch.", format: "uri" }),
+		timeout: Type.Optional(Type.Integer({ description: "Request timeout in milliseconds. Defaults to 30000.", minimum: 1 })),
+		includeMetadata: Type.Optional(
+			Type.Boolean({
+				description: "Append verbose page metadata to the markdown output. Defaults to false. Full metadata is always available in details."
+			})
+		)
+	}
+
+	Object.assign(params, providers[providerId]?.fetchParameters)
 	return Type.Object(params)
 }
 
@@ -156,7 +178,7 @@ export function registerLovelyWebSearchTool(pi: ExtensionAPI, config: WebToolsCo
 	})
 }
 
-export function registerLovelyWebStaticTools(pi: ExtensionAPI) {
+export function registerLovelyWebStaticTools(pi: ExtensionAPI, config: WebToolsConfig = {}) {
 	pi.registerTool({
 		name: "web_fetch",
 		label: "Web Fetch",
@@ -166,30 +188,18 @@ export function registerLovelyWebStaticTools(pi: ExtensionAPI) {
 			"Use web_fetch when you need the full readable markdown content of a known URL.",
 			"Prefer web_fetch over bash/curl for web pages because web_fetch returns cleaned markdown suitable for agent context."
 		],
-		parameters: Type.Object({
-			url: Type.String({ description: "The URL to fetch.", format: "uri" }),
-			waitFor: Type.Optional(
-				Type.Integer({
-					description: "Milliseconds to wait before capturing content, useful for JS-heavy pages.",
-					minimum: 0
-				})
-			),
-			timeout: Type.Optional(Type.Integer({ description: "Request timeout in milliseconds. Defaults to 30000.", minimum: 1 })),
-			includeMetadata: Type.Optional(
-				Type.Boolean({
-					description:
-						"Append verbose page metadata to the markdown output. Defaults to false. Full metadata is always available in details."
-				})
-			)
-		}),
+		parameters: getFetchParameters(config),
 		renderCall(args, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0)
+			const input = args as unknown as FetchToolArgs
 			const bits: string[] = []
-			if (args.waitFor !== undefined) bits.push(`wait ${args.waitFor}ms`)
-			if (args.timeout !== undefined) bits.push(`timeout ${args.timeout}ms`)
-			if (args.includeMetadata) bits.push("metadata")
+			if (input.waitFor !== undefined) bits.push(`wait ${input.waitFor}ms`)
+			if (input.maxAgeHours !== undefined) bits.push(`max age ${input.maxAgeHours}h`)
+			if (input.extractDepth !== undefined) bits.push(input.extractDepth)
+			if (input.timeout !== undefined) bits.push(`timeout ${input.timeout}ms`)
+			if (input.includeMetadata) bits.push("metadata")
 			const suffix = bits.length ? ` ${theme.fg("dim", `(${bits.join(", ")})`)}` : ""
-			text.setText(`${theme.fg("toolTitle", theme.bold("web_fetch "))}${theme.fg("muted", args.url)}${suffix}`)
+			text.setText(`${theme.fg("toolTitle", theme.bold("web_fetch "))}${theme.fg("muted", input.url)}${suffix}`)
 			return text
 		},
 		renderResult(result, { expanded, isPartial }, theme) {
@@ -197,31 +207,30 @@ export function registerLovelyWebStaticTools(pi: ExtensionAPI) {
 		},
 		async execute(_toolCallId, params, signal, onUpdate, ctx) {
 			try {
+				const input = params as unknown as FetchToolArgs
 				const config = loadConfig(ctx.cwd)
 				const fetchProvider = getProvider("fetch", config)
 				onUpdate?.({
-					content: [{ type: "text", text: `Fetching page with ${fetchProvider.label}: ${params.url}` }],
+					content: [{ type: "text", text: `Fetching page with ${fetchProvider.label}: ${input.url}` }],
 					details: undefined
 				})
 
 				const result = await fetchProvider.fetch(
 					resolveApiKey(fetchProvider, config),
-					params.url,
+					input.url,
 					{
-						timeout: params.timeout ?? DEFAULT_TIMEOUT_MS,
-						...(params.waitFor !== undefined ? { waitFor: params.waitFor } : {})
+						timeout: input.timeout ?? DEFAULT_TIMEOUT_MS,
+						...(input.waitFor !== undefined ? { waitFor: input.waitFor } : {}),
+						...(input.maxAgeHours !== undefined ? { maxAgeHours: input.maxAgeHours } : {}),
+						...(input.extractDepth !== undefined ? { extractDepth: input.extractDepth } : {})
 					},
 					signal
 				)
 				if (signal?.aborted) throw new Error("Fetch cancelled")
 
-				const warning =
-					["exa", "tavily"].includes(fetchProvider.id) && params.waitFor !== undefined
-						? `Warning: ${fetchProvider.label} ignores waitFor; request sent without any extra page-load delay.\n\n`
-						: ""
-				const metadata = params.includeMetadata && result.metadata ? `\n\nMetadata:\n${stringify(result.metadata)}` : ""
+				const metadata = input.includeMetadata && result.metadata ? `\n\nMetadata:\n${stringify(result.metadata)}` : ""
 				const toolResult: ToolResult = {
-					content: [{ type: "text", text: `${warning}${result.markdown}${metadata}` }],
+					content: [{ type: "text", text: `${result.markdown}${metadata}` }],
 					details: result.raw
 				}
 				onUpdate?.(toolResult)

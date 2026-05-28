@@ -22,16 +22,24 @@ export interface SearchOptions {
 	freshness?: string
 }
 
+export interface FetchOptions {
+	timeout?: number
+	waitFor?: number
+	maxAgeHours?: number
+	extractDepth?: string
+}
+
 export interface Provider {
 	readonly id: string
 	readonly label: string
 	readonly envApiKey: string
 	readonly searchParameters?: Record<string, TSchema>
+	readonly fetchParameters?: Record<string, TSchema>
 	search(apiKey: string, query: string, opts: SearchOptions, signal?: AbortSignal): Promise<{ results: SearchResult[]; raw: unknown }>
 	fetch?(
 		apiKey: string,
 		url: string,
-		opts: { waitFor?: number; timeout?: number },
+		opts: FetchOptions,
 		signal?: AbortSignal
 	): Promise<{ markdown: string; metadata?: unknown; raw: unknown }>
 }

@@ -22,7 +22,7 @@ import {
 	writeConfigFile
 } from "./config.js"
 import { asErrorMessage } from "./format.js"
-import { registerLovelyWebSearchTool } from "./tools.js"
+import { registerLovelyWebSearchTool, registerLovelyWebStaticTools } from "./tools.js"
 
 function providerSubmenu(title: string, labels: string[], currentValue: string, done: (selectedValue?: string) => void) {
 	const container = new Container()
@@ -70,6 +70,7 @@ export function registerLovelyWebCommand(pi: ExtensionAPI) {
 				writeConfigFile(configPath, config)
 				const activeConfig = loadConfig(ctx.cwd)
 				registerLovelyWebSearchTool(pi, activeConfig)
+				registerLovelyWebStaticTools(pi, activeConfig)
 				applyToolConfig(pi, activeConfig)
 			}
 
