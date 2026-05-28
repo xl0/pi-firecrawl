@@ -15,6 +15,17 @@ function truncate(text: string, maxLen: number): string {
 	return `${text.slice(0, maxLen)}…`
 }
 
+function indent(text: string): string {
+	return text
+		.split("\n")
+		.map(line => `     ${line}`)
+		.join("\n")
+}
+
+function field(label: string, value: string): string[] {
+	return value.includes("\n") ? [`   ${label}:`, indent(value)] : [`   ${label}: ${value}`]
+}
+
 export function formatSearchOutput(results: SearchResult[]) {
 	if (results.length === 0) return "No results."
 
@@ -24,13 +35,13 @@ export function formatSearchOutput(results: SearchResult[]) {
 			const url = result.url
 			const description = result.description
 			const markdown = result.markdown?.trim()
-			const lines = [`${index + 1}. ${title}`]
+			const lines = [`${index + 1}.`, ...field("title", title)]
 
-			if (url) lines.push(`   ${url}`)
+			if (url) lines.push(...field("url", url))
 			if (description && !(index === 0 && markdown)) {
-				lines.push(`   ${truncate(description, MAX_DESCRIPTION_LENGTH)}`)
+				lines.push(...field("desc", truncate(description, MAX_DESCRIPTION_LENGTH)))
 			}
-			if (index === 0 && markdown) lines.push("", "   Markdown:", markdown)
+			if (index === 0 && markdown) lines.push("   markdown:", markdown)
 
 			return lines.join("\n")
 		})

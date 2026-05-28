@@ -2,3 +2,4 @@ node_modules/
 bun.lock
 .pi/
 test/.env
+test/sessions/

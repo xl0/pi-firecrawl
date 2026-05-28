@@ -1,11 +1,14 @@
-1. History of artificial intelligence | Dates, Advances, Alan Turing, ELIZA, & Facts | Britannica
-   https://www.britannica.com/science/history-of-artificial-intelligence
-   [history of artificial intelligence (AI)](https://www.britannica.com/science/history-of-artificial-intelligence). [Images](https://www.britannica.com/science/history-of-artificial-intelligence/images-videos). <https://www.britannica.com/science/history-of-artificial-intelligence>. •[History](https:/…
+1.
+   title: History of artificial intelligence | Dates, Advances, Alan Turing, ELIZA ...
+   url: https://www.britannica.com/science/history-of-artificial-intelligence
+   desc: **history of artificial intelligence (AI)**, a survey of important events and people in the field of artificial intelligence (AI) from the early work of British logician Alan Turing in the 1930s to advancements at the turn of the 21st century. This is Turing’s stored-program concept, and implicit in…
 
-2. History - Artificial Intelligence - Research Guides at Caldwell University
-   https://libguides.caldwell.edu/ai/history
-   # Artificial Intelligence: History. ## An Extremely Brief History of Artificial Intelligence. The concept of artificial intelligence (AI)—machines that can think and learn on their own—is not a new one. Notable events include Alan Turing's introduction of the eponymous Turing test, the goal of which…
+2.
+   title: Artificial Intelligence: History - Research Guides - Caldwell University
+   url: https://libguides.caldwell.edu/ai/history
+   desc: # Artificial Intelligence: History. ## An Extremely Brief History of Artificial Intelligence. The concept of artificial intelligence (AI)—machines that can think and learn on their own—is not a new one. Notable events include Alan Turing's introduction of the eponymous Turing test, the goal of which…
 
-3. What is the history of artificial intelligence (AI)? - Tableau
-   https://www.tableau.com/data-insights/ai/history
-   [Skip to content](https://www.tableau.com/data-insights/ai/history#main-content). *   [Developer](https://www.tableau.com/developer). *   [Articles](https://www.tableau.com/learn/articles). *   [](https://www.tableau.com/my-tableau). 1.   [What is artificial intelligence?](https://www.tableau.com/da…
+3.
+   title: What is the history of artificial intelligence (AI)? - Tableau
+   url: https://www.tableau.com/data-insights/ai/history
+   desc: [Artificial intelligence](https://www.tableau.com/products/artificial-intelligence) is a specialty within computer science that is concerned with creating systems that can replicate human intelligence and [problem-solving abilities](https://www.tableau.com/analytics/what-is-ai-analytics). [Learn mor…

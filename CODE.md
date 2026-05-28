@@ -14,7 +14,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `test/references/ref-*.txt` — shared reference snapshots, generated from Tavily (provider-agnostic). All providers compare against the same refs; LLM judges formatting/structure, not content.
 `test/.env` — API keys for providers (gitignored), loaded by test scripts without overriding existing environment variables.
 `test/env.ts` — tiny `.env` loader shared by test scripts.
-`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)` in Pi JSON mode. Per-provider config written to `.pi/xl0-pi-lovely-web.json` and removed in a `finally` block. LLM compares output structure to reference with per-case expectations; final assistant text must end with exact `OK` or `FAIL: ...`. Summary at end, exits non-zero on failures.
+`test/run.ts` — runs each case/provider pair sequentially via `spawn("pi", ...)` in Pi JSON mode. Each run gets a timestamped ignored `test/sessions/<run-id>/` directory; each case/provider invocation saves to a named session file printed on the result line as a relative path. Per-provider config is written to `.pi/xl0-pi-lovely-web.json` and removed in a `finally` block. LLM compares field-labeled output structure to reference with per-case expectations; final assistant text must end with exact `OK` or `FAIL: ...`. Summary at end, exits non-zero on failures.
 `test/update-references.ts` — calls Tavily provider directly with keys from `test/.env`/environment, saves formatted tool text as reference, exits non-zero on failures.
 `test/image.ts` — direct external-network smoke test for `imageImpl`: small PNG from httpbin remains unresized; large Picsum JPEG is resized to Pi inline limits.
 
@@ -84,4 +84,4 @@ WebToolsConfig { webSearch?: {provider?: string | null}, webFetch?: {provider?: 
 `web_image` downloads with `fetch()`, validates HTTP status, supported image MIME type, response body, and byte cap while streaming; then uses Pi's exported image resize helper to enforce inline image limits. Tool content contains a short text note plus the resized image block (or decode/resize omission note), with URL/mime/bytes/contentLength/dimensions/originalDimensions/wasResized metadata in `details`.
 
 ## Formatting (`format.ts`)
-Provider-agnostic: `formatSearchOutput(results: SearchResult[])` truncates non-fetched result descriptions at 300 chars; `stringify()`, `asErrorMessage()`.
+Provider-agnostic: `formatSearchOutput(results: SearchResult[])` emits numbered results with concise `title`/`url`/`desc`/`markdown` fields, indents multiline description fields, leaves fetched markdown unindented to avoid token waste, and truncates non-fetched result descriptions at 300 chars; `stringify()`, `asErrorMessage()`.

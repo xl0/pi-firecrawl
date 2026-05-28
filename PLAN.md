@@ -29,4 +29,5 @@
 ## Next useful work
 - [ ] Refactor `command.ts` UI item construction after behavior stabilizes.
 - [ ] Add cheap deterministic direct tests for config/provider resolution and formatting.
+- [x] Keep live-provider integration test sessions under ignored `test/sessions/<run-id>/` and print each session file.
 - [ ] Keep live-provider integration tests as smoke coverage, not exact content tests.
