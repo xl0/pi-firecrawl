@@ -80,7 +80,7 @@ export function registerLovelyWebCommand(pi: ExtensionAPI) {
 					{
 						id: "fetch",
 						label: "web_fetch",
-						currentValue: isFetchEnabled(config) ? providerLabel(config.webFetch?.provider ?? DEFAULT_PROVIDER_ID) : DISABLED_LABEL,
+						currentValue: isFetchEnabled(config) ? providerLabel(config.webFetch?.provider ?? undefined) : DISABLED_LABEL,
 						description: "Fetch provider, or disabled to remove web_fetch from active tools.",
 						submenu: (currentValue, done) => providerSubmenu("Select fetch provider", fetchLabels, currentValue, done)
 					},
