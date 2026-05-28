@@ -65,6 +65,9 @@ export const firecrawlProvider: Provider = {
 		country: Type.Optional(Type.String({ description: "ISO country code for geo-targeting, e.g. US, DE, CO." })),
 		tbs: Type.Optional(Type.String({ description: "Google-style time filter, e.g. qdr:d, qdr:w, qdr:m, qdr:y." }))
 	},
+	fetchParameters: {
+		waitFor: Type.Optional(Type.Integer({ description: "Extra delay in milliseconds before capturing page content.", minimum: 0 }))
+	},
 
 	async search(apiKey, query, opts, signal) {
 		const body: SearchBody = { query, limit: opts.limit }

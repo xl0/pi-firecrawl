@@ -10,6 +10,7 @@ export default function (pi: ExtensionAPI) {
 		try {
 			const config = loadConfig(ctx.cwd)
 			registerLovelyWebSearchTool(pi, config)
+			registerLovelyWebStaticTools(pi, config)
 			applyToolConfig(pi, config)
 		} catch (error) {
 			ctx.ui.notify(`Lovely Web config error: ${asErrorMessage(error)}`, "error")

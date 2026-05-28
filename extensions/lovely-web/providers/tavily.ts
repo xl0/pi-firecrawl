@@ -84,6 +84,11 @@ export const tavilyProvider: Provider = {
 		country: Type.Optional(Type.String({ description: "Country name to boost general-topic results, e.g. colombia." })),
 		timeRange: Type.Optional(StringEnum(["day", "week", "month", "year", "d", "w", "m", "y"]))
 	},
+	fetchParameters: {
+		extractDepth: Type.Optional(
+			StringEnum(["basic", "advanced"], { description: "Advanced extraction retrieves more data such as tables; costs more." })
+		)
+	},
 
 	async search(apiKey, query, opts, signal) {
 		const body: SearchBody = {
@@ -130,7 +135,7 @@ export const tavilyProvider: Provider = {
 	async fetch(apiKey, url, opts, signal) {
 		const body: ExtractBody = {
 			urls: [url],
-			extract_depth: "basic",
+			extract_depth: opts.extractDepth ?? "basic",
 			format: "markdown"
 		}
 

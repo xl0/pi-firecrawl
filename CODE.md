@@ -21,7 +21,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 ## Extension
 `extensions/lovely-web/index.ts` is the Pi entrypoint. It applies active-tool config on `session_start`, registers tools via `tools.ts`, and registers `/lovely-web` via `command.ts`.
 
-- `tools.ts`: registers `web_search`, `web_fetch`, and `web_image`; owns common tool schemas, prompt snippets/guidelines, call/result rendering hooks, and execute wrappers. Provider-specific `web_search` parameters live on provider objects. Static `web_fetch`/`web_image` registration happens once at extension load; `web_search` is re-registered on session start and after `/lovely-web` config saves so its public parameters match the active search provider. Tool execute functions resolve configured providers/API keys and call providers directly. `web_search` fetches the first result only when `fetchResult:true` and a fetch provider is configured.
+- `tools.ts`: registers `web_search`, `web_fetch`, and `web_image`; owns common tool schemas, prompt snippets/guidelines, call/result rendering hooks, and execute wrappers. Provider-specific `web_search`/`web_fetch` parameters live on provider objects. Tools are registered at extension load, then `web_search`/`web_fetch` are re-registered on session start and after `/lovely-web` config saves so public parameters match the active providers. Tool execute functions resolve configured providers/API keys and call providers directly. `web_search` fetches the first result only when `fetchResult:true` and a fetch provider is configured.
 - `constants.ts`: shared extension constants, currently the default request timeout.
 - `types.ts`: shared `ToolResult` shape for tool content/details/error returns.
 - `image.ts`: exports standalone `imageImpl`; downloads direct image URLs without provider config/API keys. Supports PNG/JPEG/WebP/GIF, default 5 MB download cap, maximum 20 MB, optional timeout/maxBytes. Downloaded images are passed through Pi's `resizeImage()` before returning to the LLM; if decoding/resizing cannot fit inline limits, the image is omitted with a note. Metadata lives in `details`; Pi's generic image-content renderer displays the image block.
@@ -30,7 +30,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 
 Tools:
 - `web_search`: search dispatching to configured search provider with provider-specific schema. Common args are `query`, optional `limit`, and optional `fetchResult`; provider-specific args mirror useful API concepts (`source` for Firecrawl/Brave, `category` for Exa, `topic`/`includeImages` for Tavily). Result rendering shows the first few output lines until expanded. `fetchResult` defaults to false; when true and `web_fetch` has a configured provider, the first result is fetched. Image searches first try direct image fetch/resizing and fall back to page markdown fetch only when the result URL is not image content and `web_fetch` is configured.
-- `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Public options: `url`, optional `waitFor`, optional `timeout`, optional `includeMetadata`. Tool call rendering shows supplied non-default args. Result rendering shows the first few output lines until expanded.
+- `web_fetch`: fetch one URL as cleaned markdown dispatching to configured fetch provider. Common public options are `url`, optional `timeout`, and optional `includeMetadata`; extra provider-specific options are Firecrawl `waitFor`, Exa `maxAgeHours`, and Tavily `extractDepth`. Tool call rendering shows supplied non-default args. Result rendering shows the first few output lines until expanded.
 - `web_image`: fetch a direct image URL and return a short text note plus one image content block, matching Pi `read` image behavior. Resizing is controlled by config (`webImage.resize`, default true) and max longest side (`webImage.maxSize`, default 2000 px).
 
 ## Provider dispatch
@@ -52,15 +52,14 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 ### Exa (`providers/exa.ts`)
 - Search: POST `/search` with query, numResults, type:"auto", contents:{summary:true}, optional Exa `category`, optional `userLocation` via `country`. Exa has no `source` parameter; if passed, provider errors.
 - Search result descriptions use Exa's semantic `summary` field (abstractive, query-tailored page summaries) with a leading `Summary:` label stripped if Exa returns one.
-- Fetch: POST `/contents` with ids:[url], text:true. `waitFor` is ignored for Exa; `web_fetch` returns a warning if the caller supplies it.
+- Fetch: POST `/contents` with urls:[url], text:true, optional maxAgeHours.
 - Auth: `x-api-key` header.
 - Results normalized from `results[]` array. Fetch checks `statuses` for per-URL errors.
 
 ### Tavily (`providers/tavily.ts`)
 - Search: POST `/search` with query, max_results, search_depth:"basic", optional topic/time_range/country/include_images. `topic` supports general/news/finance; `includeImages:true` maps Tavily's top-level image URLs into `SearchResult[]`. Tavily has no `source` parameter; if passed, provider errors.
 - Search result descriptions use Tavily's `content` field (semantic snippets).
-- Fetch: POST `/extract` with urls:[url], extract_depth:"basic", format:"markdown". Returns `{results:[{url, raw_content, images, favicon}], failed_results[]}`.
-- `waitFor` is ignored for Tavily (no JS rendering); `web_fetch` warns if supplied.
+- Fetch: POST `/extract` with urls:[url], configurable extract_depth (default "basic"), format:"markdown". Returns `{results:[{url, raw_content, images, favicon}], failed_results[]}`.
 - Auth: `Authorization: Bearer <key>`. Env key: `TAVILY_API_KEY`.
 
 ### Brave Search (`providers/brave.ts`)
@@ -75,7 +74,8 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 ```ts
 SearchResult { title, url, description?, markdown? }
 SearchOptions { limit, source?, timeout?, category?, location?, country?, tbs?, timeRange?, topic?, includeImages?, searchLang?, freshness? }
-Provider { id, label, envApiKey, searchParameters?, search(apiKey, query, SearchOptions), fetch?() }
+FetchOptions { timeout?, waitFor?, maxAgeHours?, extractDepth? }
+Provider { id, label, envApiKey, searchParameters?, fetchParameters?, search(apiKey, query, SearchOptions), fetch?() }
 WebToolsConfig { webSearch?: {provider?: string | null}, webFetch?: {provider?: string | null}, webImage?: {enabled?, resize?, maxSize?}, webApiKeys? }
 ```
 
