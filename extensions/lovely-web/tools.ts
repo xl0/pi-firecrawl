@@ -127,12 +127,14 @@ export function registerLovelyWebSearchTool(pi: ExtensionAPI, config: WebToolsCo
 							try {
 								fetchedImage = await fetchSearchResultImage(config, first.url, signal)
 							} catch {
+								if (signal?.aborted) throw new Error("Search cancelled")
 								// Some image-search providers return source pages instead of direct image URLs.
 							}
 						}
 						if (!fetchedImage && isFetchEnabled(config)) first.markdown = await fetchSearchResultMarkdown(config, first.url, signal)
 						if (signal?.aborted) throw new Error("Search cancelled")
 					} catch (err) {
+						if (signal?.aborted) throw err
 						first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`
 					}
 				}
