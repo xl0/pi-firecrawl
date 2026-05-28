@@ -1,102 +1,32 @@
 # Plan
 
-## High-level
-- Package is `@xl0/pi-lovely-web` (multi-provider web tools).
-- Keep `web_search` and `web_fetch` tool names; dispatch to configured provider at runtime.
-- Add standalone `web_image` for URL → LLM image content; no provider/API key needed.
-- Search and fetch providers configurable independently.
-- Persist config in exported `CONFIG_FILE_NAME` (`xl0-pi-lovely-web.json`) under `~/.pi/agent/` + project `.pi/`, project overrides global.
-- Register `/lovely-web` for interactive provider/API-key/tool active-state config.
-- Providers use plain `fetch()`; zero runtime deps beyond Pi peer deps.
-- API key resolution: `webApiKeys.<providerId>` → provider env var → error.
-- Search/fetch default to Firecrawl; `provider:null` disables each tool.
+## High-level decisions
+- Package is `@xl0/pi-lovely-web`; keep it minimal and dependency-free at runtime.
+- Keep `web_search`, `web_fetch`, and `web_image` tool names.
+- Providers use plain REST via shared `fetch()` helpers, not provider SDKs.
+- Search provider defaults to Firecrawl; fetch has no default and is disabled until configured.
+- Provider config lives in exported `CONFIG_FILE_NAME` (`xl0-pi-lovely-web.json`) under global `~/.pi/agent/` and project `.pi/`; project config overrides global.
+- API key resolution: `webApiKeys.<providerId>` → provider env var → explicit error.
+- `/lovely-web` applies tool active-state changes immediately with `setActiveTools()`.
+- `web_image` is URL-only and uses Pi image resizing; it does not require provider config/API keys.
 
 ## Architecture
-```
-extensions/lovely-web/
-  index.ts              - extension entrypoint; wires session config and registration modules
-  config.ts             - provider registry, config load/save, enabled-state application, API-key/provider resolution
-  image.ts              - standalone `imageImpl` and direct image download/resize handling
-  types.ts              - shared tool result type
-  tools.ts              - dynamic `web_search` and static `web_fetch`/`web_image` registration/render/execute wrappers
-  command.ts            - `/lovely-web` interactive settings command
-  render.ts             - shared collapsed text result renderer
-  format.ts             - formatSearchOutput, stringify, asErrorMessage
-  providers/
-    types.ts            - Provider/WebToolsConfig interfaces
-    http.ts             - shared JSON request helper
-    firecrawl.ts        - Firecrawl search + fetch
-    exa.ts              - Exa search + fetch
-    tavily.ts           - Tavily search + fetch
-    brave.ts            - Brave search-only provider
-```
-
-## Refactor plan
-- [x] Split large `extensions/lovely-web/index.ts` by responsibility without behavior changes.
-- [x] Keep test imports off the extension entrypoint to avoid extra bootstrap coupling.
-- [x] Verify with `bun run check`.
-- [x] Fix Exa `Summary:` label stripping so search formatting matches reference.
-- [x] Stabilize `search-fetch` query (`NIST quantum computing explained`) for deterministic first-result fetch.
-- [x] All tests pass (10/10 integration + image smoke).
-
-## Image resize config
-- [x] Add `webImage.resize` (default true) and `webImage.maxSize` (default 2000 px) to `WebToolsConfig`.
-- [x] Wire config into `imageImpl` and `tools.ts` execute wrapper.
-- [x] Add `/lovely-web` UI entries for resize toggle and max-size input.
-- [x] Verify with `bun run check` and tests.
-
-## Shared types
-```ts
-interface SearchResult {
-  title: string
-  url: string
-  description?: string
-  markdown?: string // populated for first result when fetchResult=true and fetch succeeds
-}
-
-interface Provider {
-  readonly id: string
-  readonly label: string
-  readonly envApiKey: string
-  search(apiKey: string, query: string, opts: {limit: number; source?: string; timeout?: number}, signal?: AbortSignal): Promise<{results: SearchResult[]; raw: unknown}>
-  fetch?(apiKey: string, url: string, opts: {waitFor?: number; timeout?: number}, signal?: AbortSignal): Promise<{markdown: string; metadata?: unknown; raw: unknown}>
-}
-```
-
-## Config shape
-```json
-{
-  "webSearch": { "provider": "exa" },
-  "webFetch":  { "provider": "firecrawl" },
-  "webImage":  { "enabled": true },
-  "webApiKeys": {
-    "firecrawl": "fc-...",
-    "exa": "...",
-    "tavily": "...",
-    "brave": "..."
-  }
-}
-```
+- `extensions/lovely-web/index.ts` wires session config, tools, and command registration.
+- `config.ts` owns provider registry/config loading/saving, enabled-state checks, API-key/provider resolution.
+- `constants.ts` owns shared constants such as the default timeout.
+- `tools.ts` owns tool schemas, render hooks, and execution wrappers.
+- `command.ts` owns the interactive settings UI.
+- `image.ts` owns direct image download/resize handling.
+- `providers/` contains one provider adapter per external API plus shared HTTP/types.
 
 ## Provider decisions
-- Firecrawl honors `waitFor`; Exa and Tavily ignore it and `web_fetch` warns.
-- Fetch capability is determined by whether a provider implements `fetch`; Brave is search-only and `web_fetch` errors if Brave is the only resolved fetch provider.
-- `web_search` schema is re-registered from active provider config and mirrors useful provider API concepts: Firecrawl exposes `source` plus category/location filters; Exa exposes native `category` only (no source/images); Tavily exposes `topic` plus `includeImages`; Brave exposes endpoint `source` plus country/language/freshness params.
-- Each provider normalizes API responses into `SearchResult[]` and exposes raw API response in `details`.
-- `format.ts` remains provider-agnostic.
-- `web_image` is intentionally URL-only. Provider image discovery can expose URLs later; `web_image` decides which URL becomes actual image context.
-- Search/fetch default to Firecrawl. `provider:null` disables `web_search`/`web_fetch`; `webImage.enabled:false` disables `web_image`. `/lovely-web` applies changes immediately via Pi `setActiveTools()`, so disabled tools leave the active tool list and prompt without reload.
+- Firecrawl supports search/fetch and honors `waitFor`.
+- Exa supports search/fetch; `waitFor` is ignored and reported as a warning by `web_fetch`.
+- Tavily supports search/fetch; `waitFor` is ignored and reported as a warning by `web_fetch`.
+- Brave Search supports search only.
+- Search/fetch schemas expose provider-specific API concepts directly where useful.
 
-## Test plan
-- Keep LLM-judged integration tests as smoke coverage over live providers; `test/run.ts` stores Pi JSON-mode artifacts and sessions under `test/results/<run-id>/`.
-- Keep `test:image` as a direct external-network smoke test for `web_image`; prefer adding cheap direct tests for more deterministic logic if this grows: formatting, config/provider resolution, Brave fetch rejection, env loading, image MIME/size validation.
-
-## Done
-- [x] Package renamed, zero runtime deps, old extension removed, checks pass.
-- [x] Tool execution now calls providers directly from `tools.ts`; reference updater calls Tavily directly.
-- [x] Firecrawl, Exa, Tavily, Brave providers implemented.
-- [x] `/lovely-web` provider-driven config command implemented with tool enable/disable controls.
-- [x] Integration tests: 10 cases pass (3 firecrawl + 3 exa + 3 tavily + 1 brave).
-- [x] Test harness loads `test/.env`, avoids config races, runs Pi in JSON mode with per-run session/artifact storage, removes temp config in `finally`, parses exact final verdicts, and reference updates exit non-zero on failures.
-- [x] Provider HTTP timeout/error handling deduplicated in `providers/http.ts`; README provider list updated.
-- [x] `web_image` implemented as URL-only image downloader with MIME/size validation and image content output.
+## Next useful work
+- [ ] Refactor `command.ts` UI item construction after behavior stabilizes.
+- [ ] Add cheap deterministic direct tests for config/provider resolution and formatting.
+- [ ] Keep live-provider integration tests as smoke coverage, not exact content tests.
