@@ -63,6 +63,25 @@ async function fetchImageContent(
 	}
 }
 
+function textOnlyResult(text: string, details: Record<string, unknown>): ToolResult {
+	return { content: [{ type: "text" as const, text }], details }
+}
+
+function imageResult(text: string, image: { data: string; mimeType: string }, details: Record<string, unknown>): ToolResult {
+	return {
+		content: [
+			{ type: "text" as const, text },
+			{ type: "image" as const, data: image.data, mimeType: image.mimeType }
+		],
+		details
+	}
+}
+
+function emitResult(result: ToolResult, onUpdate?: (result: ToolResult) => void): ToolResult {
+	onUpdate?.(result)
+	return result
+}
+
 export async function imageImpl(
 	params: {
 		url: string
@@ -81,6 +100,12 @@ export async function imageImpl(
 	if (signal?.aborted) throw new Error("Image fetch cancelled")
 
 	const originalDimensions = getImageDimensions(image.data, image.mimeType) ?? undefined
+	const downloadDetails = {
+		url: params.url,
+		mimeType: image.mimeType,
+		bytes: image.bytes,
+		contentLength: image.contentLength
+	}
 
 	if (params.resize === false) {
 		// Re-encode to sanitize, but don't downscale.
@@ -90,37 +115,20 @@ export async function imageImpl(
 		)) as ResizedImage | null
 		if (!validated) {
 			const note = `Fetched image [${image.mimeType}]\n[Image omitted: could not be decoded]`
-			const result: ToolResult = {
-				content: [{ type: "text" as const, text: note }],
-				details: {
-					url: params.url,
-					mimeType: image.mimeType,
-					bytes: image.bytes,
-					contentLength: image.contentLength
-				}
-			}
-			onUpdate?.(result)
-			return result
+			return emitResult(textOnlyResult(note, downloadDetails), onUpdate)
 		}
 		const dimensions = { widthPx: validated.width, heightPx: validated.height }
 		const note = `Fetched image [${validated.mimeType}]`
-		const result: ToolResult = {
-			content: [
-				{ type: "text" as const, text: note },
-				{ type: "image" as const, data: validated.data, mimeType: validated.mimeType }
-			],
-			details: {
-				url: params.url,
+		return emitResult(
+			imageResult(note, validated, {
+				...downloadDetails,
 				mimeType: validated.mimeType,
-				bytes: image.bytes,
-				contentLength: image.contentLength,
 				dimensions,
 				originalDimensions,
 				wasResized: validated.wasResized
-			}
-		}
-		onUpdate?.(result)
-		return result
+			}),
+			onUpdate
+		)
 	}
 
 	const resized = (await resizeImage(
@@ -130,38 +138,20 @@ export async function imageImpl(
 
 	if (!resized) {
 		const note = `Fetched image [${image.mimeType}]\n[Image omitted: could not be decoded or resized below the inline image size limit.]`
-		const result: ToolResult = {
-			content: [{ type: "text" as const, text: note }],
-			details: {
-				url: params.url,
-				mimeType: image.mimeType,
-				bytes: image.bytes,
-				contentLength: image.contentLength,
-				dimensions: originalDimensions
-			}
-		}
-		onUpdate?.(result)
-		return result
+		return emitResult(textOnlyResult(note, { ...downloadDetails, dimensions: originalDimensions }), onUpdate)
 	}
 
 	const dimensionNote = formatDimensionNote(resized)
 	const note = `Fetched image [${resized.mimeType}]${dimensionNote ? `\n${dimensionNote}` : ""}`
 	const dimensions = { widthPx: resized.width, heightPx: resized.height }
-	const result: ToolResult = {
-		content: [
-			{ type: "text" as const, text: note },
-			{ type: "image" as const, data: resized.data, mimeType: resized.mimeType }
-		],
-		details: {
-			url: params.url,
+	return emitResult(
+		imageResult(note, resized, {
+			...downloadDetails,
 			mimeType: resized.mimeType,
-			bytes: image.bytes,
-			contentLength: image.contentLength,
 			dimensions,
 			originalDimensions,
 			wasResized: resized.wasResized
-		}
-	}
-	onUpdate?.(result)
-	return result
+		}),
+		onUpdate
+	)
 }
