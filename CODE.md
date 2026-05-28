@@ -4,7 +4,7 @@
 Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa, Tavily, Brave) for Pi.
 
 ## Package
-- Published package name: `@xl0/pi-lovely-web` at version `0.1.4`.
+- Published package name: `@xl0/pi-lovely-web`.
 - Pi entry: `extensions/` via `package.json#pi.extensions`.
 - Published files include `extensions/`, `README.md`, and `LICENSE`; package gallery image metadata points at GitHub-hosted screenshots under `assets/`.
 - Zero runtime dependencies. Pi APIs are peer dependencies with minimum version `>=0.75.4`.
@@ -76,7 +76,7 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 SearchResult { title, url, description?, markdown? }
 SearchOptions { limit, source?, timeout?, category?, location?, country?, tbs?, timeRange?, topic?, includeImages?, searchLang?, freshness? }
 Provider { id, label, envApiKey, searchParameters?, search(apiKey, query, SearchOptions), fetch?() }
-WebToolsConfig { webSearch?: {provider?: string | null}, webFetch?: {provider?: string | null}, webImage?: {enabled?}, webApiKeys? }
+WebToolsConfig { webSearch?: {provider?: string | null}, webFetch?: {provider?: string | null}, webImage?: {enabled?, resize?, maxSize?}, webApiKeys? }
 ```
 
 ## Shared HTTP (`providers/http.ts`)
