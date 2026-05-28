@@ -271,7 +271,7 @@ export function registerLovelyWebStaticTools(pi: ExtensionAPI) {
 				if (!isImageEnabled(config)) throw new Error("web_image is disabled. Enable it via /lovely-web.")
 				onUpdate?.({
 					content: [{ type: "text", text: `Fetching image: ${params.url}` }],
-					details: undefined as unknown
+					details: undefined
 				})
 				return await imageImpl(
 					{
