@@ -22,6 +22,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 `extensions/lovely-web/index.ts` is the Pi entrypoint. It applies active-tool config on `session_start`, registers tools via `tools.ts`, and registers `/lovely-web` via `command.ts`.
 
 - `tools.ts`: registers `web_search`, `web_fetch`, and `web_image`; owns common tool schemas, prompt snippets/guidelines, call/result rendering hooks, and execute wrappers. Provider-specific `web_search` parameters live on provider objects. Static `web_fetch`/`web_image` registration happens once at extension load; `web_search` is re-registered on session start and after `/lovely-web` config saves so its public parameters match the active search provider. Tool execute functions resolve configured providers/API keys and call providers directly. `web_search` auto-fetches the first result only when a fetch provider is configured.
+- `constants.ts`: shared extension constants, currently the default request timeout.
 - `types.ts`: shared `ToolResult` shape for tool content/details/error returns.
 - `image.ts`: exports standalone `imageImpl`; downloads direct image URLs without provider config/API keys. Supports PNG/JPEG/WebP/GIF, default 5 MB download cap, maximum 20 MB, optional timeout/maxBytes. Downloaded images are passed through Pi's `resizeImage()` before returning to the LLM; if decoding/resizing cannot fit inline limits, the image is omitted with a note. Metadata lives in `details`; Pi's generic image-content renderer displays the image block.
 - `command.ts`: `/lovely-web` SettingsList-based interactive command to configure providers, API keys, search/fetch disabled state (`provider:null`), and image enabled state. Active-tool changes are applied immediately through Pi `setActiveTools()`.
@@ -63,7 +64,7 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 - Auth: `Authorization: Bearer <key>`. Env key: `TAVILY_API_KEY`.
 
 ### Brave Search (`providers/brave.ts`)
-- Search-only provider (no `fetch` implementation). `webFetch` fallback will not resolve to Brave.
+- Search-only provider (no `fetch` implementation).
 - Search: GET `/web/search`, `/news/search`, or `/images/search` with query params `q`, `count`, optional country/search_lang/freshness. Source determines endpoint.
 - Web response: `{web:{results:[{title, url, description}]}}`. News response: `{results:[...]}`. Image response: `{results:[{url, title?, description?, properties?, thumbnail?}]}`; normalized URL prefers `properties.url`, then `thumbnail.src`, then page `url`.
 - `description` strips HTML tags (`<strong>` etc) from Brave snippets.

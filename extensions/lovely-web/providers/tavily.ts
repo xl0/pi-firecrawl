@@ -1,10 +1,10 @@
 import { StringEnum } from "@earendil-works/pi-ai"
 import { Type } from "typebox"
+import { DEFAULT_TIMEOUT_MS } from "../constants.js"
 import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
 const BASE_URL = "https://api.tavily.com"
-const DEFAULT_TIMEOUT_MS = 30_000
 
 interface SearchBody {
 	query: string

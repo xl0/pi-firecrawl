@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { DEFAULT_TIMEOUT_MS, providers, resolveApiKey } from "../extensions/lovely-web/config.js"
+import { providers, resolveApiKey } from "../extensions/lovely-web/config.js"
+import { DEFAULT_TIMEOUT_MS } from "../extensions/lovely-web/constants.js"
 import { formatSearchOutput } from "../extensions/lovely-web/format.js"
 import type { SearchOptions, WebToolsConfig } from "../extensions/lovely-web/providers/types.js"
 import { loadTestEnv } from "./env.js"

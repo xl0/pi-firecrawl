@@ -1,6 +1,6 @@
 import { formatDimensionNote, type ResizedImage, resizeImage } from "@earendil-works/pi-coding-agent"
 import { getImageDimensions } from "@earendil-works/pi-tui"
-import { DEFAULT_TIMEOUT_MS } from "./config.js"
+import { DEFAULT_TIMEOUT_MS } from "./constants.js"
 import type { ToolResult } from "./types.js"
 
 export const DEFAULT_MAX_IMAGE_BYTES = 5_000_000

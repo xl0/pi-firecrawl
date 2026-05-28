@@ -3,7 +3,6 @@ import { Text } from "@earendil-works/pi-tui"
 import { type TSchema, Type } from "typebox"
 import {
 	DEFAULT_PROVIDER_ID,
-	DEFAULT_TIMEOUT_MS,
 	getImageMaxSize,
 	getProvider,
 	isFetchEnabled,
@@ -13,6 +12,7 @@ import {
 	providers,
 	resolveApiKey
 } from "./config.js"
+import { DEFAULT_TIMEOUT_MS } from "./constants.js"
 import { asErrorMessage, formatSearchOutput, stringify } from "./format.js"
 import { DEFAULT_MAX_IMAGE_BYTES, imageImpl, MAX_IMAGE_BYTES } from "./image.js"
 import type { SearchOptions, WebToolsConfig } from "./providers/types.js"
