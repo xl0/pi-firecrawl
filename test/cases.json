@@ -2,7 +2,7 @@
 	{
 		"id": "search",
 		"tool": "search",
-		"args": { "query": "artificial intelligence history", "limit": 3, "fetchResult": false },
+		"args": { "query": "artificial intelligence history", "limit": 3 },
 		"providers": ["firecrawl", "exa", "tavily", "brave"]
 	},
 	{
