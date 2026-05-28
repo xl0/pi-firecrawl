@@ -44,33 +44,23 @@ interface SearchToolArgs {
 	freshness?: string
 }
 
-async function fetchFirstSearchResult(
-	config: WebToolsConfig,
-	first: { url: string; markdown?: string; description?: string },
-	isImageSearch: boolean,
-	signal?: AbortSignal
-): Promise<ToolResult | undefined> {
-	if (isImageSearch) {
-		try {
-			return await imageImpl(
-				{
-					url: first.url,
-					timeout: DEFAULT_TIMEOUT_MS,
-					resize: isImageResizeEnabled(config),
-					maxSize: getImageMaxSize(config)
-				},
-				signal
-			)
-		} catch {
-			// Some image-search providers return source pages instead of direct image URLs.
-		}
-	}
+async function fetchSearchResultImage(config: WebToolsConfig, url: string, signal?: AbortSignal): Promise<ToolResult> {
+	return imageImpl(
+		{
+			url,
+			timeout: DEFAULT_TIMEOUT_MS,
+			resize: isImageResizeEnabled(config),
+			maxSize: getImageMaxSize(config)
+		},
+		signal
+	)
+}
 
+async function fetchSearchResultMarkdown(config: WebToolsConfig, url: string, signal?: AbortSignal): Promise<string> {
 	const fetchProvider = getProvider("fetch", config)
 	const fetchApiKey = resolveApiKey(fetchProvider, config)
-	const fetched = await fetchProvider.fetch(fetchApiKey, first.url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
-	first.markdown = fetched.markdown
-	return undefined
+	const fetched = await fetchProvider.fetch(fetchApiKey, url, { timeout: DEFAULT_TIMEOUT_MS }, signal)
+	return fetched.markdown
 }
 
 function getSearchParameters(config: WebToolsConfig) {
@@ -170,7 +160,15 @@ export function registerLovelyWebSearchTool(pi: ExtensionAPI, config: WebToolsCo
 				if ((fetchResult ?? true) && first?.url) {
 					onUpdate?.({ content: [{ type: "text", text: `Fetching first result: ${first.url}` }], details: undefined })
 					try {
-						fetchedImage = await fetchFirstSearchResult(config, first, input.source === "images" || input.includeImages === true, signal)
+						const isImageSearch = input.source === "images" || input.includeImages === true
+						if (isImageSearch) {
+							try {
+								fetchedImage = await fetchSearchResultImage(config, first.url, signal)
+							} catch {
+								// Some image-search providers return source pages instead of direct image URLs.
+							}
+						}
+						if (!fetchedImage) first.markdown = await fetchSearchResultMarkdown(config, first.url, signal)
 						if (signal?.aborted) throw new Error("Search cancelled")
 					} catch (err) {
 						first.description = first.description || `[Fetch failed: ${asErrorMessage(err)}]`
