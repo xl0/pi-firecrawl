@@ -70,18 +70,25 @@ API keys can also be set via environment variables: `FIRECRAWL_API_KEY`, `EXA_AP
 
 Search defaults to Firecrawl. Fetch has no default; configure `webFetch.provider` to enable `web_fetch` and `fetchResult:true` first-result fetches from `web_search`. Set `provider:null` on `webSearch` or `webFetch` to remove that tool from Pi's active tool list. Set `webImage.enabled:false` to disable `web_image`.
 
-`web_search` parameters are provider-specific and update dynamically when you change the search provider. Changing providers changes the tool schema, which invalidates Pi's prefill cache.
+`web_search` and `web_fetch` parameters are provider-specific and update dynamically when you change providers. Changing providers changes the tool schema and potentially may confuse the model if you change the schema mid-session, but unlikely with modern LLMs.
 
 Search params:
 
 | Provider | Extra `web_search` params |
 |----------|---------------------------|
-| Firecrawl | `source:web|news|images`, `category:github|research|pdf`, `location`, `country`, `tbs` |
-| Exa | `category:company|people|research paper|news|personal site|financial report`, `country` |
-| Tavily | `topic:general|news|finance`, `includeImages`, `country`, `timeRange` |
-| Brave Search | `source:web|news|images`, `country`, `searchLang`, `freshness` |
+| Firecrawl | `source` selects web/news/images; `category` filters to github/research/pdf; `location`/`country` localize; `tbs` applies Google-style time filters. |
+| Exa | `category` narrows Exa's result type; `country` localizes. |
+| Tavily | `topic` selects general/news/finance; `includeImages` returns image URLs; `country` localizes; `timeRange` limits recency. |
+| Brave Search | `source` selects web/news/images; `country` localizes; `searchLang` sets language; `freshness` limits recency. |
 
-`waitFor` is fetch-provider-specific: Firecrawl supports it as an extra pre-capture delay; Exa and Tavily ignore it and `web_fetch` returns a warning if supplied.
+Fetch params:
+
+| Provider | Extra `web_fetch` params |
+|----------|--------------------------|
+| Firecrawl | `waitFor` waits before scraping, in ms. |
+| Exa | `maxAgeHours` allows cached page content up to that age. |
+| Tavily | `extractDepth` selects basic or advanced extraction. |
+
 
 `web_image` fetches a direct image URL without provider config/API keys and returns a short text note plus image content to vision-capable models, matching Pi's `read` image behavior. Supported MIME types: PNG, JPEG, WebP, GIF. Defaults to a 5 MB download cap and resizes through Pi's inline image helper before returning content.
 
