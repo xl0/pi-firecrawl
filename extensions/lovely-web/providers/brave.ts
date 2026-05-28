@@ -1,3 +1,5 @@
+import { StringEnum } from "@earendil-works/pi-ai"
+import { Type } from "typebox"
 import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
@@ -75,6 +77,12 @@ export const braveProvider: Provider = {
 	id: "brave",
 	label: "Brave Search",
 	envApiKey: "BRAVE_API_KEY",
+	searchParameters: {
+		source: Type.Optional(StringEnum(["web", "news", "images"])),
+		country: Type.Optional(Type.String({ description: "Two-letter country code, e.g. US, DE, CO, or ALL." })),
+		searchLang: Type.Optional(Type.String({ description: "Search language code, e.g. en, es, de." })),
+		freshness: Type.Optional(Type.String({ description: "Freshness filter for web/news: pd, pw, pm, py, or YYYY-MM-DDtoYYYY-MM-DD." }))
+	},
 
 	async search(apiKey, query, opts, signal) {
 		const url = buildSearchUrl(opts.source, query, opts.limit, opts)

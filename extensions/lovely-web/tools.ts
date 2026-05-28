@@ -1,4 +1,3 @@
-import { StringEnum } from "@earendil-works/pi-ai"
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent"
 import { Text } from "@earendil-works/pi-tui"
 import { type TSchema, Type } from "typebox"
@@ -18,15 +17,6 @@ import { DEFAULT_MAX_IMAGE_BYTES, imageImpl, MAX_IMAGE_BYTES } from "./image.js"
 import type { SearchOptions, WebToolsConfig } from "./providers/types.js"
 import { renderTextResult } from "./render.js"
 import type { ToolResult } from "./types.js"
-
-function stringEnum(values: string[]) {
-	return StringEnum(values as [string, ...string[]])
-}
-
-function getSearchSources(providerId: string): string[] {
-	if (providerId === "firecrawl" || providerId === "brave") return ["web", "news", "images"]
-	return []
-}
 
 interface SearchToolArgs {
 	query: string
@@ -66,7 +56,6 @@ async function fetchSearchResultMarkdown(config: WebToolsConfig, url: string, si
 function getSearchParameters(config: WebToolsConfig) {
 	const configured = config.webSearch?.provider
 	const providerId = configured && providers[configured] ? configured : DEFAULT_PROVIDER_ID
-	const sources = getSearchSources(providerId)
 	const params: Record<string, TSchema> = {
 		query: Type.String({ description: "The search query." }),
 		limit: Type.Optional(
@@ -83,35 +72,7 @@ function getSearchParameters(config: WebToolsConfig) {
 		)
 	}
 
-	if (providerId === "firecrawl") {
-		Object.assign(params, {
-			source: Type.Optional(stringEnum(sources)),
-			category: Type.Optional(stringEnum(["github", "research", "pdf"])),
-			location: Type.Optional(Type.String({ description: "Geo-target results, e.g. Germany or San Francisco,California,United States." })),
-			country: Type.Optional(Type.String({ description: "ISO country code for geo-targeting, e.g. US, DE, CO." })),
-			tbs: Type.Optional(Type.String({ description: "Google-style time filter, e.g. qdr:d, qdr:w, qdr:m, qdr:y." }))
-		})
-	} else if (providerId === "exa") {
-		Object.assign(params, {
-			category: Type.Optional(stringEnum(["company", "people", "research paper", "news", "personal site", "financial report"])),
-			country: Type.Optional(Type.String({ description: "Two-letter ISO user location for result localization, e.g. US, DE, CO." }))
-		})
-	} else if (providerId === "tavily") {
-		Object.assign(params, {
-			topic: Type.Optional(stringEnum(["general", "news", "finance"])),
-			includeImages: Type.Optional(Type.Boolean({ description: "Return query-related image URLs instead of page results." })),
-			country: Type.Optional(Type.String({ description: "Country name to boost general-topic results, e.g. colombia." })),
-			timeRange: Type.Optional(stringEnum(["day", "week", "month", "year", "d", "w", "m", "y"]))
-		})
-	} else if (providerId === "brave") {
-		Object.assign(params, {
-			source: Type.Optional(stringEnum(sources)),
-			country: Type.Optional(Type.String({ description: "Two-letter country code, e.g. US, DE, CO, or ALL." })),
-			searchLang: Type.Optional(Type.String({ description: "Search language code, e.g. en, es, de." })),
-			freshness: Type.Optional(Type.String({ description: "Freshness filter for web/news: pd, pw, pm, py, or YYYY-MM-DDtoYYYY-MM-DD." }))
-		})
-	}
-
+	Object.assign(params, providers[providerId]?.searchParameters)
 	return Type.Object(params)
 }
 
