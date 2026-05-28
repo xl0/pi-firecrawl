@@ -21,7 +21,7 @@ Minimal Pi extension package providing multi-provider web access (Firecrawl, Exa
 ## Extension
 `extensions/lovely-web/index.ts` is the Pi entrypoint. It applies active-tool config on `session_start`, registers tools via `tools.ts`, and registers `/lovely-web` via `command.ts`.
 
-- `tools.ts`: registers `web_search`, `web_fetch`, and `web_image`; owns dynamic provider-specific tool schemas, prompt snippets/guidelines, call/result rendering hooks, and execute wrappers. Static `web_fetch`/`web_image` registration happens once at extension load; `web_search` is re-registered on session start and after `/lovely-web` config saves so its public parameters match the active search provider. Tool execute functions resolve configured providers/API keys and call providers directly.
+- `tools.ts`: registers `web_search`, `web_fetch`, and `web_image`; owns common tool schemas, prompt snippets/guidelines, call/result rendering hooks, and execute wrappers. Provider-specific `web_search` parameters live on provider objects. Static `web_fetch`/`web_image` registration happens once at extension load; `web_search` is re-registered on session start and after `/lovely-web` config saves so its public parameters match the active search provider. Tool execute functions resolve configured providers/API keys and call providers directly.
 - `types.ts`: shared `ToolResult` shape for tool content/details/error returns.
 - `image.ts`: exports standalone `imageImpl`; downloads direct image URLs without provider config/API keys. Supports PNG/JPEG/WebP/GIF, default 5 MB download cap, maximum 20 MB, optional timeout/maxBytes. Downloaded images are passed through Pi's `resizeImage()` before returning to the LLM; if decoding/resizing cannot fit inline limits, the image is omitted with a note. Metadata lives in `details`; Pi's generic image-content renderer displays the image block.
 - `command.ts`: `/lovely-web` SettingsList-based interactive command to configure providers, API keys, search/fetch disabled state (`provider:null`), and image enabled state. Active-tool changes are applied immediately through Pi `setActiveTools()`.
@@ -74,7 +74,7 @@ API key resolution: `webApiKeys.<providerId>` in config → `process.env[PROVIDE
 ```ts
 SearchResult { title, url, description?, markdown? }
 SearchOptions { limit, source?, timeout?, category?, location?, country?, tbs?, timeRange?, topic?, includeImages?, searchLang?, freshness? }
-Provider { id, label, envApiKey, search(apiKey, query, SearchOptions), fetch?() }
+Provider { id, label, envApiKey, searchParameters?, search(apiKey, query, SearchOptions), fetch?() }
 WebToolsConfig { webSearch?: {provider?: string | null}, webFetch?: {provider?: string | null}, webImage?: {enabled?}, webApiKeys? }
 ```
 

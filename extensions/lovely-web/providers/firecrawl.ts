@@ -1,3 +1,5 @@
+import { StringEnum } from "@earendil-works/pi-ai"
+import { Type } from "typebox"
 import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
@@ -56,6 +58,13 @@ export const firecrawlProvider: Provider = {
 	id: "firecrawl",
 	label: "Firecrawl",
 	envApiKey: "FIRECRAWL_API_KEY",
+	searchParameters: {
+		source: Type.Optional(StringEnum(["web", "news", "images"])),
+		category: Type.Optional(StringEnum(["github", "research", "pdf"])),
+		location: Type.Optional(Type.String({ description: "Geo-target results, e.g. Germany or San Francisco,California,United States." })),
+		country: Type.Optional(Type.String({ description: "ISO country code for geo-targeting, e.g. US, DE, CO." })),
+		tbs: Type.Optional(Type.String({ description: "Google-style time filter, e.g. qdr:d, qdr:w, qdr:m, qdr:y." }))
+	},
 
 	async search(apiKey, query, opts, signal) {
 		const body: SearchBody = { query, limit: opts.limit }

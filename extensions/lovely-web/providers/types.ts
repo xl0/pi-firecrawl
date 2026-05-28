@@ -1,3 +1,5 @@
+import type { TSchema } from "typebox"
+
 export interface SearchResult {
 	title: string
 	url: string
@@ -24,6 +26,7 @@ export interface Provider {
 	readonly id: string
 	readonly label: string
 	readonly envApiKey: string
+	readonly searchParameters?: Record<string, TSchema>
 	search(apiKey: string, query: string, opts: SearchOptions, signal?: AbortSignal): Promise<{ results: SearchResult[]; raw: unknown }>
 	fetch?(
 		apiKey: string,

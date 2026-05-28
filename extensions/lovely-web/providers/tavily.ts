@@ -1,3 +1,5 @@
+import { StringEnum } from "@earendil-works/pi-ai"
+import { Type } from "typebox"
 import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
@@ -76,6 +78,12 @@ export const tavilyProvider: Provider = {
 	id: "tavily",
 	label: "Tavily",
 	envApiKey: "TAVILY_API_KEY",
+	searchParameters: {
+		topic: Type.Optional(StringEnum(["general", "news", "finance"])),
+		includeImages: Type.Optional(Type.Boolean({ description: "Return query-related image URLs instead of page results." })),
+		country: Type.Optional(Type.String({ description: "Country name to boost general-topic results, e.g. colombia." })),
+		timeRange: Type.Optional(StringEnum(["day", "week", "month", "year", "d", "w", "m", "y"]))
+	},
 
 	async search(apiKey, query, opts, signal) {
 		const body: SearchBody = {

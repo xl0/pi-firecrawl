@@ -1,3 +1,5 @@
+import { StringEnum } from "@earendil-works/pi-ai"
+import { Type } from "typebox"
 import { requestJson } from "./http.js"
 import type { Provider, SearchResult } from "./types.js"
 
@@ -56,6 +58,10 @@ export const exaProvider: Provider = {
 	id: "exa",
 	label: "Exa",
 	envApiKey: "EXA_API_KEY",
+	searchParameters: {
+		category: Type.Optional(StringEnum(["company", "people", "research paper", "news", "personal site", "financial report"])),
+		country: Type.Optional(Type.String({ description: "Two-letter ISO user location for result localization, e.g. US, DE, CO." }))
+	},
 
 	async search(apiKey, query, opts, signal) {
 		const body: SearchBody = {
