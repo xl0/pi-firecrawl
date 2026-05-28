@@ -68,7 +68,7 @@ function getSearchParameters(config: WebToolsConfig) {
 		),
 		fetchResult: Type.Optional(
 			Type.Boolean({
-				description: "Whether to fetch the first result. Defaults to true; image searches fetch image content when possible."
+				description: "Whether to fetch the first result. Defaults to false; image searches fetch image content when enabled."
 			})
 		)
 	}
@@ -93,7 +93,7 @@ export function registerLovelyWebSearchTool(pi: ExtensionAPI, config: WebToolsCo
 			const input = args as unknown as SearchToolArgs
 			const mode = input.includeImages ? "images" : (input.source ?? input.topic ?? input.category ?? "web")
 			const bits = [mode, `limit ${input.limit ?? 5}`]
-			if (input.fetchResult ?? true) bits.push("fetch first")
+			if (input.fetchResult === true) bits.push("fetch first")
 			text.setText(
 				`${theme.fg("toolTitle", theme.bold("web_search "))}${theme.fg("muted", `"${input.query}"`)} ${theme.fg("dim", `(${bits.join(", ")})`)}`
 			)
@@ -119,7 +119,7 @@ export function registerLovelyWebSearchTool(pi: ExtensionAPI, config: WebToolsCo
 
 				const first = searchResult.results[0]
 				let fetchedImage: ToolResult | undefined
-				if ((fetchResult ?? true) && first?.url) {
+				if (fetchResult === true && first?.url) {
 					onUpdate?.({ content: [{ type: "text", text: `Fetching first result: ${first.url}` }], details: undefined })
 					try {
 						const isImageSearch = input.source === "images" || input.includeImages === true
