@@ -8,7 +8,6 @@ import { firecrawlProvider } from "./providers/firecrawl.js"
 import { tavilyProvider } from "./providers/tavily.js"
 import type { Provider, WebToolsConfig } from "./providers/types.js"
 
-export const DEFAULT_TIMEOUT_MS = 30_000
 export const DEFAULT_PROVIDER_ID = "firecrawl"
 export const CONFIG_FILE_NAME = "xl0-pi-lovely-web.json"
 export const DISABLED_LABEL = "Disabled"
